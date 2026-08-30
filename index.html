@@ -154,12 +154,11 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.65);
       backdrop-filter: blur(2px);
       z-index: 1;
     }
 
-    /* --- タイトルロゴ＆強烈なエフェクト --- */
     .logo-container {
       position: relative;
       z-index: 2;
@@ -188,24 +187,17 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.8)) drop-shadow(0 0 25px rgba(0, 240, 255, 0.8));
-      animation: intenseGlow 1.2s infinite alternate ease-in-out, glitchAnim 2.5s infinite;
+      animation: intenseGlow 1.2s infinite alternate ease-in-out;
     }
 
     @keyframes logoPulse {
-      0% { transform: scale(1); filter: drop-shadow(0 0 15px #ff0055) drop-shadow(0 0 25px #00f0ff); }
-      100% { transform: scale(1.05); filter: drop-shadow(0 0 25px #ff0055) drop-shadow(0 0 45px #00f0ff); }
+      0% { transform: scale(1); }
+      100% { transform: scale(1.05); }
     }
 
     @keyframes intenseGlow {
-      0% { filter: drop-shadow(0 0 8px #ff0055) drop-shadow(0 0 20px #00f0ff); }
-      100% { filter: drop-shadow(0 0 20px #ff0055) drop-shadow(0 0 40px #ffea00); }
-    }
-
-    @keyframes glitchAnim {
-      0%, 92%, 100% { transform: translate(0, 0); }
-      93% { transform: translate(-3px, 2px); }
-      95% { transform: translate(3px, -2px); }
-      97% { transform: translate(-2px, -1px); }
+      0% { filter: drop-shadow(0 0 8px #ff0055); }
+      100% { filter: drop-shadow(0 0 20px #ffea00); }
     }
 
     .overlay-subtext {
@@ -251,7 +243,7 @@
 
     .btn-start:active {
       transform: translateY(3px);
-      box-shadow: 0 2px 0 #0652dd, 0 0 10px rgba(46, 213, 115, 0.4);
+      box-shadow: 0 2px 0 #0652dd;
     }
   </style>
 </head>
@@ -307,7 +299,7 @@
       bgm: 'bgm.mp3', 
       jump: 'jump.mp3', 
       score: 'score_milestone.mp3',
-      damage: 'damage.mp3' // ライフを失う際の効果音を追加
+      damage: 'damage.mp3'
     };
     const PLAYER_IMAGES = { run1: 'run1.png', run2: 'run2.png', jump: 'jump.png' };
 
@@ -388,24 +380,21 @@
     }
     updateHighScoreDisplays();
 
-    let gameSpeed = 6.5;
+    // 基本難易度の向上：初期スピードを8.0に引き上げ
+    let gameSpeed = 8.0;
     let frameCount = 0;
 
-    // --- 超リアルな背景構成要素 ---
-    const stars = Array.from({ length: 50 }, () => ({
+    // --- 目に優しい静的な背景構成要素（チカチカしない） ---
+    const stars = Array.from({ length: 35 }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * (GROUND_Y - 120),
-      size: Math.random() * 2 + 0.8,
-      alpha: Math.random(),
-      twinkleSpeed: Math.random() * 0.05 + 0.01
+      size: Math.random() * 2 + 1
     }));
 
-    const buildings = Array.from({ length: 12 }, (_, i) => ({
-      x: i * 85,
-      width: 60 + Math.random() * 40,
-      height: 120 + Math.random() * 120,
-      windowColor: Math.random() < 0.3 ? '#ff0055' : (Math.random() < 0.6 ? '#00f0ff' : '#fde047'),
-      hasBeacon: Math.random() < 0.4
+    const buildings = Array.from({ length: 8 }, (_, i) => ({
+      x: i * 110,
+      width: 70 + Math.random() * 30,
+      height: 100 + Math.random() * 100
     }));
 
     // プレイヤーオブジェクト
@@ -463,124 +452,98 @@
     let obstacles = [];
     let nextObstacleTimer = 0;
 
-    // --- 作りこまれたリアルな障害物 ---
+    // --- 高コントラストで視認性抜群の障害物 ---
     class Obstacle {
       constructor() {
-        const airRatio = Math.min(0.5, 0.25 + level * 0.05);
+        // 空中障害物の割合を増やす（難易度アップ）
+        const airRatio = Math.min(0.6, 0.35 + level * 0.05);
         this.type = Math.random() < airRatio ? 'AIR' : 'GROUND';
-        this.width = this.type === 'GROUND' ? 46 : 48;
-        this.height = this.type === 'GROUND' ? 58 : 48;
+        this.width = this.type === 'GROUND' ? 48 : 50;
+        this.height = this.type === 'GROUND' ? 60 : 50;
         this.x = canvas.width + 50;
-        this.y = this.type === 'GROUND' ? GROUND_Y - this.height : GROUND_Y - 110 - Math.random() * 35;
+        this.y = this.type === 'GROUND' ? GROUND_Y - this.height : GROUND_Y - 110 - Math.random() * 30;
         this.rotation = 0;
-        this.glowPhase = Math.random() * Math.PI * 2;
       }
       update() { 
         this.x -= gameSpeed; 
-        if (this.type === 'AIR') this.rotation += 0.15;
-        this.glowPhase += 0.1;
+        if (this.type === 'AIR') this.rotation += 0.12;
       }
       draw() {
         ctx.save();
         if (this.type === 'GROUND') {
-          // --- 地上：ハイテール超グラフィック・メタルスパイク ---
-          // 影
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-          ctx.beginPath();
-          ctx.ellipse(this.x + this.width / 2, GROUND_Y, this.width / 2 + 5, 6, 0, 0, Math.PI * 2);
-          ctx.fill();
+          // --- 地上：視認性の高い危険スパイク ---
+          // 太い白枠でくっきり浮かび上がらせる
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 4;
+          ctx.lineJoin = 'round';
 
-          // メインボディ（リアルなグラデーションシェーディング）
-          const metalGrad = ctx.createLinearGradient(this.x, this.y, this.x + this.width, GROUND_Y);
-          metalGrad.addColorStop(0, '#1e293b');
-          metalGrad.addColorStop(0.3, '#475569');
-          metalGrad.addColorStop(0.7, '#0f172a');
-          metalGrad.addColorStop(1, '#020617');
-
-          ctx.fillStyle = metalGrad;
           ctx.beginPath();
-          ctx.moveTo(this.x + 4, GROUND_Y);
-          ctx.lineTo(this.x + this.width * 0.35, this.y);
-          ctx.lineTo(this.x + this.width * 0.6, GROUND_Y - 20);
-          ctx.lineTo(this.x + this.width - 2, this.y + 12);
+          ctx.moveTo(this.x, GROUND_Y);
+          ctx.lineTo(this.x + this.width * 0.5, this.y);
           ctx.lineTo(this.x + this.width, GROUND_Y);
           ctx.closePath();
+          ctx.stroke();
+
+          // 鮮やかな赤～黒の本体
+          const redGrad = ctx.createLinearGradient(this.x, this.y, this.x, GROUND_Y);
+          redGrad.addColorStop(0, '#ff1744');
+          redGrad.addColorStop(1, '#880015');
+          ctx.fillStyle = redGrad;
           ctx.fill();
 
-          // エッジハイライト（金属光沢）
-          ctx.strokeStyle = '#94a3b8';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-
-          // 発光線（エネルギーコア）
-          const glowAlpha = Math.sin(this.glowPhase) * 0.3 + 0.7;
-          ctx.strokeStyle = `rgba(255, 0, 85, ${glowAlpha})`;
-          ctx.lineWidth = 2.5;
-          ctx.shadowColor = '#ff0055';
-          ctx.shadowBlur = 10;
-          ctx.beginPath();
-          ctx.moveTo(this.x + this.width * 0.35, this.y + 4);
-          ctx.lineTo(this.x + this.width * 0.35, GROUND_Y - 5);
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-
-          // 危険用デンジャーベースプレート
-          ctx.fillStyle = '#111';
-          ctx.fillRect(this.x - 4, GROUND_Y - 8, this.width + 8, 8);
-          ctx.fillStyle = '#eab308';
-          for (let i = 0; i < this.width + 6; i += 12) {
-            ctx.fillRect(this.x - 4 + i, GROUND_Y - 8, 6, 8);
+          // 危険警告ストライプ（黄色と黒の分かりやすい模様）
+          ctx.fillStyle = '#ffea00';
+          ctx.fillRect(this.x - 2, GROUND_Y - 10, this.width + 4, 10);
+          ctx.fillStyle = '#000000';
+          for (let i = 0; i < this.width; i += 12) {
+            ctx.fillRect(this.x + i, GROUND_Y - 10, 6, 10);
           }
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(this.x - 2, GROUND_Y - 10, this.width + 4, 10);
+
         } else {
-          // --- 空中：精密メカニカル・ソーブレード（ドローン型） ---
+          // --- 空中：鮮やかなオレンジの回転ブレード ---
           ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
           
-          // アウターネオンリング
-          ctx.shadowColor = '#00f0ff';
-          ctx.shadowBlur = 12;
-          ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
-          ctx.lineWidth = 2;
+          // 外側の白い輪郭線
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 4;
           ctx.beginPath();
-          ctx.arc(0, 0, this.width / 2 + 3, 0, Math.PI * 2);
+          ctx.arc(0, 0, this.width / 2 + 2, 0, Math.PI * 2);
           ctx.stroke();
-          ctx.shadowBlur = 0;
 
-          // 回転鋸刃
+          // 鮮やかなネオンオレンジの背景輪郭
+          ctx.fillStyle = '#ff9100';
+          ctx.beginPath();
+          ctx.arc(0, 0, this.width / 2 + 1, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 回転ブレード
           ctx.rotate(this.rotation);
           const r = this.width / 2;
-          const bladeGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, r);
-          bladeGrad.addColorStop(0, '#f8fafc');
-          bladeGrad.addColorStop(0.5, '#64748b');
-          bladeGrad.addColorStop(0.9, '#1e293b');
-          bladeGrad.addColorStop(1, '#00f0ff');
-
-          ctx.fillStyle = bladeGrad;
+          ctx.fillStyle = '#212121';
           ctx.beginPath();
-          const teeth = 12;
+          const teeth = 8;
           for (let i = 0; i < teeth; i++) {
             const a1 = (Math.PI * 2 / teeth) * i;
             const a2 = a1 + (Math.PI / (teeth * 2));
             const a3 = a1 + (Math.PI / teeth);
             ctx.lineTo(Math.cos(a1) * r, Math.sin(a1) * r);
-            ctx.lineTo(Math.cos(a2) * (r * 1.15), Math.sin(a2) * (r * 1.15));
-            ctx.lineTo(Math.cos(a3) * (r * 0.7), Math.sin(a3) * (r * 0.7));
+            ctx.lineTo(Math.cos(a2) * (r * 1.2), Math.sin(a2) * (r * 1.2));
+            ctx.lineTo(Math.cos(a3) * (r * 0.6), Math.sin(a3) * (r * 0.6));
           }
           ctx.closePath();
           ctx.fill();
 
-          // 鋸のメカニカル構造（内枠）
-          ctx.fillStyle = '#0f172a';
+          // 中心部の黄色の目立つコア
+          ctx.fillStyle = '#ffea00';
           ctx.beginPath();
-          ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2);
+          ctx.arc(0, 0, r * 0.35, 0, Math.PI * 2);
           ctx.fill();
-
-          // 核心赤色LED発光部
-          ctx.fillStyle = '#ff0055';
-          ctx.shadowColor = '#ff0055';
-          ctx.shadowBlur = 8;
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.25, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 2;
+          ctx.stroke();
         }
         ctx.restore();
       }
@@ -590,91 +553,57 @@
       return (r1.x + 8 < r2.x + r2.width && r1.x + r1.width - 8 > r2.x && r1.y + 8 < r2.y + r2.height && r1.y + r1.height - 8 > r2.y);
     }
 
-    // --- リアル背景描画システム ---
+    // --- 落ち着いた目に優しい背景描画 ---
     function drawBackground() {
-      // 1. グラデーション夜空
+      // 1. 深みのある落ち着いた夜空（チカチカ・点滅なし）
       const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
-      skyGrad.addColorStop(0, '#030712');
-      skyGrad.addColorStop(0.4, '#0f0728');
-      skyGrad.addColorStop(0.8, '#1f0d3d');
-      skyGrad.addColorStop(1, '#3b0764');
+      skyGrad.addColorStop(0, '#0a0f1d');
+      skyGrad.addColorStop(0.7, '#1a233a');
+      skyGrad.addColorStop(1, '#252f4a');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, GROUND_Y);
 
-      // 2. 星空（またたきアニメーション）
+      // 2. 静止した星（点滅を排除）
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
       stars.forEach(s => {
-        if (gameState === 'PLAYING') s.x -= s.size * 0.15;
+        if (gameState === 'PLAYING') s.x -= 0.2;
         if (s.x < 0) s.x = canvas.width;
-        s.alpha += s.twinkleSpeed;
-        if (s.alpha > 1 || s.alpha < 0.2) s.twinkleSpeed = -s.twinkleSpeed;
-
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, Math.min(1, s.alpha))})`;
         ctx.fillRect(s.x, s.y, s.size, s.size);
       });
 
-      // 3. 超リアルなネオンサイバーシティ（ビル群）
+      // 3. フラットなシルエットのビル群（眩しくないシックなデザイン）
       buildings.forEach(b => {
-        if (gameState === 'PLAYING') b.x -= gameSpeed * 0.2;
-        if (b.x + b.width < 0) b.x = canvas.width + Math.random() * 40;
+        if (gameState === 'PLAYING') b.x -= gameSpeed * 0.15;
+        if (b.x + b.width < 0) b.x = canvas.width + Math.random() * 30;
 
-        // ビル本体
-        const bGrad = ctx.createLinearGradient(b.x, GROUND_Y - b.height, b.x + b.width, GROUND_Y);
-        bGrad.addColorStop(0, '#111827');
-        bGrad.addColorStop(1, '#030712');
-        ctx.fillStyle = bGrad;
+        ctx.fillStyle = '#0d1527';
         ctx.fillRect(b.x, GROUND_Y - b.height, b.width, b.height);
 
-        // ビルのネオン縁取り
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(b.x, GROUND_Y - b.height, b.width, b.height);
-
-        // ビルの窓の光
-        ctx.fillStyle = b.windowColor;
-        for (let wy = GROUND_Y - b.height + 12; wy < GROUND_Y - 15; wy += 18) {
-          for (let wx = b.x + 6; wx < b.x + b.width - 10; wx += 12) {
-            if ((wx * 7 + wy * 13) % 5 < 3) {
-              ctx.globalAlpha = 0.6;
-              ctx.fillRect(wx, wy, 5, 7);
-            }
+        // 窓の控えめな光
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+        for (let wy = GROUND_Y - b.height + 15; wy < GROUND_Y - 15; wy += 22) {
+          for (let wx = b.x + 8; wx < b.x + b.width - 12; wx += 16) {
+            ctx.fillRect(wx, wy, 6, 9);
           }
-        }
-        ctx.globalAlpha = 1.0;
-
-        // 航空障害灯（赤LED）
-        if (b.hasBeacon) {
-          const beaconGlow = Math.sin(frameCount * 0.08) * 0.5 + 0.5;
-          ctx.fillStyle = `rgba(255, 0, 85, ${beaconGlow})`;
-          ctx.beginPath();
-          ctx.arc(b.x + b.width / 2, GROUND_Y - b.height - 3, 2.5, 0, Math.PI * 2);
-          ctx.fill();
         }
       });
 
-      // 4. 地面（サイバーグリッド・グラデーションライン）
+      // 4. 地面（クッキリとしたコントラスト）
       const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, canvas.height);
-      groundGrad.addColorStop(0, '#0f172a');
-      groundGrad.addColorStop(0.3, '#020617');
-      groundGrad.addColorStop(1, '#000000');
+      groundGrad.addColorStop(0, '#1e293b');
+      groundGrad.addColorStop(1, '#0f172a');
       ctx.fillStyle = groundGrad;
       ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
 
-      // 発光グランドライン
-      ctx.shadowColor = '#00f0ff';
-      ctx.shadowBlur = 10;
-      ctx.fillStyle = '#00f0ff';
-      ctx.fillRect(0, GROUND_Y, canvas.width, 3);
-      ctx.shadowBlur = 0;
+      // 境界のハッキリした芝生・境界線
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(0, GROUND_Y, canvas.width, 4);
 
-      // グリッドスピードライン
-      ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
-      ctx.lineWidth = 1.5;
-      const offset = (frameCount * gameSpeed) % 40;
-      for (let x = -offset; x < canvas.width; x += 40) {
-        ctx.beginPath();
-        ctx.moveTo(x, GROUND_Y);
-        ctx.lineTo(x - 20, canvas.height);
-        ctx.stroke();
+      // 走行感のある白いスピードライン
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      const offset = (frameCount * gameSpeed) % 50;
+      for (let x = -offset; x < canvas.width; x += 50) {
+        ctx.fillRect(x, GROUND_Y + 14, 24, 4);
       }
     }
 
@@ -685,7 +614,6 @@
         bgmAudio.playbackRate = 1.0;
       } else if (lives === 1) {
         livesVal.textContent = '❤️ 🖤';
-        // ライフが残り1つの時、BGM速度を1.2倍に変更
         bgmAudio.playbackRate = 1.2;
       } else {
         livesVal.textContent = '🖤 🖤';
@@ -730,28 +658,28 @@
 
       if (gameState === 'PLAYING') {
         frameCount++;
-        score += gameSpeed * 0.035;
+        score += gameSpeed * 0.04;
         scoreVal.textContent = Math.floor(score);
 
-        // --- 200点ごとに難易度向上の仕様に変更 ---
-        const currentLevel = Math.floor(score / 200) + 1;
+        // --- 100点ごとに難易度上昇＋効果音 ---
+        const currentLevel = Math.floor(score / 100) + 1;
         if (currentLevel > level) {
           level = currentLevel;
           levelVal.textContent = level;
-          playScoreSound(); // レベルアップ効果音
+          playScoreSound();
         }
 
-        // LEVELに伴う速度調整
-        gameSpeed = 6.5 + (level - 1) * 0.7;
+        // 基本難易度強化：レベルアップごとに速度も急上昇
+        gameSpeed = 8.0 + (level - 1) * 0.8;
 
         player.update();
 
-        // 障害物の生成管理
+        // 障害物の生成管理（出現頻度アップ）
         nextObstacleTimer--;
         if (nextObstacleTimer <= 0) {
           obstacles.push(new Obstacle());
-          const minDelay = Math.max(18, 55 - level * 3);
-          nextObstacleTimer = minDelay + Math.random() * 25;
+          const minDelay = Math.max(15, 45 - level * 2.5);
+          nextObstacleTimer = minDelay + Math.random() * 20;
         }
 
         // 障害物の移動・衝突判定
@@ -761,13 +689,13 @@
 
           if (player.invincibleFrames === 0 && checkCollision(player, obs)) {
             lives--;
-            playDamageSound(); // 被弾（ライフ損失）効果音を再生
+            playDamageSound();
             updateLivesUI();
 
             if (lives <= 0) {
               gameOver();
             } else {
-              player.invincibleFrames = 90; // 被弾後約1.5秒間無敵
+              player.invincibleFrames = 90;
             }
           }
 
@@ -817,7 +745,7 @@
       updateLivesUI();
       updateHighScoreDisplays();
 
-      gameSpeed = 6.5; 
+      gameSpeed = 8.0; 
       obstacles = []; 
       player.reset();
       gameState = 'PLAYING';
