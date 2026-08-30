@@ -15,10 +15,17 @@
       padding: 0;
     }
 
-    html, body {
+    html {
       width: 100%;
       height: 100%;
-      height: 100svh;
+      background-color: #000000;
+    }
+
+    body {
+      width: 100%;
+      height: 100%;
+      /* Safariのアドレスバー非表示化を促すための余白設定 */
+      min-height: calc(100vh + 1px);
       overflow: hidden;
       background-color: #000000;
       font-family: 'M PLUS Rounded 1c', 'Fredoka One', sans-serif;
@@ -27,26 +34,24 @@
       align-items: center;
     }
 
-    /* ゲームコンテナ */
     #game-container {
       position: relative;
       width: 100vw;
+      height: 100vh;
       height: 100svh;
       max-width: 177.78svh;
       max-height: 56.25vw;
       background: #60a5fa;
       overflow: hidden;
-      box-shadow: 0 0 30px rgba(0,0,0,0.8);
-      transition: all 0.2s ease;
     }
 
-    /* iOS用 擬似フルスクリーンモード */
+    /* 全画面拡張モード */
     #game-container.is-fullscreen {
       max-width: 100vw !important;
-      max-height: 100svh !important;
+      max-height: 100vh !important;
       width: 100vw !important;
-      height: 100svh !important;
-      border-radius: 0 !important;
+      height: 100vh !important;
+      height: 100lvh !important;
     }
 
     canvas {
@@ -80,14 +85,12 @@
     .score-board .current-score { color: #fde047; }
     .score-board .high-score { color: #4ade80; }
 
-    /* タイトル＆ゲームオーバー画面 */
     .overlay-screen {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      /* タイトル背景を「上部合わせ」に設定 */
       background-image: url('bg_title.png');
       background-size: cover;
       background-position: top center;
@@ -119,16 +122,15 @@
     .logo-container {
       position: relative;
       z-index: 2;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       text-align: center;
-      max-width: 65%;
+      max-width: 60%;
     }
 
     .logo-img {
       width: 100%;
-      max-height: 160px;
+      max-height: 140px;
       object-fit: contain;
-      filter: drop-shadow(0px 6px 10px rgba(0,0,0,0.5));
     }
 
     .game-logo-text {
@@ -137,12 +139,7 @@
       color: #ff3838;
       line-height: 1.0;
       letter-spacing: 2px;
-      text-shadow: 
-        3px 3px 0 #fff,
-        -3px -3px 0 #fff,
-        3px -3px 0 #fff,
-        -3px 3px 0 #fff,
-        0 6px 0 #c51111;
+      text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
     }
 
     .overlay-subtext {
@@ -151,8 +148,8 @@
       font-size: clamp(14px, 3vw, 18px);
       font-weight: 900;
       color: #ffffff;
-      margin-bottom: 15px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+      margin-bottom: 12px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
       background: rgba(0, 0, 0, 0.4);
       padding: 4px 16px;
       border-radius: 20px;
@@ -166,17 +163,17 @@
       font-size: clamp(18px, 4vw, 26px);
       font-weight: 900;
       color: #ffffff;
-      background: linear-gradient(to bottom, #32ff7e, #10ac84);
+      background: #2ed573;
       border: 3px solid #ffffff;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 6px 0 #0652dd, 0 8px 15px rgba(0,0,0,0.4);
-      text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+      box-shadow: 0 4px 0 #0652dd;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
     }
 
     .btn-start:active {
-      transform: translateY(4px);
-      box-shadow: 0 2px 0 #0652dd, 0 4px 8px rgba(0,0,0,0.4);
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #0652dd;
     }
 
     .fullscreen-btn {
@@ -220,29 +217,19 @@
   </div>
 
   <script>
-    // --- 全画面表示処理 (iOS対応の擬似フルスクリーン) ---
+    // --- Safariのアドレスバー・タブ隠しと全画面切り替え ---
+    function hideSafariAddressBar() {
+      window.scrollTo(0, 1);
+    }
+
     function toggleFullScreen() {
       const container = document.getElementById('game-container');
       const btn = document.getElementById('fsBtn');
       
       container.classList.toggle('is-fullscreen');
+      btn.textContent = container.classList.contains('is-fullscreen') ? '元に戻す' : '全画面表示';
       
-      if (container.classList.contains('is-fullscreen')) {
-        btn.textContent = '元に戻す';
-      } else {
-        btn.textContent = '全画面表示';
-      }
-
-      // 標準APIが使える環境用
-      const doc = window.document;
-      const docEl = doc.documentElement;
-      const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullScreen;
-      if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
-        if (requestFS) requestFS.call(docEl).catch(()=>{});
-      } else {
-        const exitFS = doc.exitFullscreen || doc.webkitExitFullscreen;
-        if (exitFS) exitFS.call(doc).catch(()=>{});
-      }
+      hideSafariAddressBar();
     }
 
     function showTextLogo() {
@@ -258,8 +245,15 @@
     bgmAudio.loop = true;
     bgmAudio.volume = 0.4;
 
-    const jumpAudio = new Audio(AUDIO_FILES.jump);
-    jumpAudio.volume = 0.6;
+    const jumpAudioBase = new Audio(AUDIO_FILES.jump);
+    jumpAudioBase.volume = 0.6;
+
+    // ★ジャンプ音連打対応（複数再生用関数）
+    function playJumpSound() {
+      const soundClone = jumpAudioBase.cloneNode();
+      soundClone.volume = 0.6;
+      soundClone.play().catch(()=>{});
+    }
 
     const images = {};
     Object.keys(PLAYER_IMAGES).forEach(key => {
@@ -291,7 +285,7 @@
     let gameSpeed = 6.0;
     let frameCount = 0;
 
-    // --- プレイヤーオブジェクト ---
+    // プレイヤー定義
     const player = {
       x: 80, y: GROUND_Y - 60, width: 50, height: 60,
       velocityY: 0, jumpPower: -15.5, jumpCount: 0, maxJumps: 2,
@@ -309,8 +303,7 @@
           this.velocityY = this.jumpPower;
           this.jumpCount++;
           this.isGrounded = false;
-          jumpAudio.currentTime = 0;
-          jumpAudio.play().catch(()=>{});
+          playJumpSound(); // ★連打対応の音声再生
         }
       },
       update() {
@@ -328,116 +321,4 @@
         let currentImg = null;
         if (!this.isGrounded && images.jump && images.jump.complete && images.jump.naturalWidth > 0) currentImg = images.jump;
         else if (this.animFrame === 0 && images.run1 && images.run1.complete && images.run1.naturalWidth > 0) currentImg = images.run1;
-        else if (this.animFrame === 1 && images.run2 && images.run2.complete && images.run2.naturalWidth > 0) currentImg = images.run2;
-
-        if (currentImg) {
-          ctx.drawImage(currentImg, this.x, this.y, this.width, this.height);
-        } else {
-          ctx.fillStyle = '#ff4757';
-          ctx.fillRect(this.x, this.y, this.width, this.height);
-        }
-      }
-    };
-
-    let obstacles = [];
-    let nextObstacleTimer = 0;
-
-    class Obstacle {
-      constructor() {
-        const airRatio = Math.min(0.5, 0.25 + score * 0.0005);
-        this.type = Math.random() < airRatio ? 'AIR' : 'GROUND';
-        this.width = this.type === 'GROUND' ? 35 + Math.random() * 20 : 45;
-        this.height = this.type === 'GROUND' ? 45 + Math.random() * 30 : 35;
-        this.x = canvas.width + 50;
-        this.y = this.type === 'GROUND' ? GROUND_Y - this.height : GROUND_Y - 110 - Math.random() * 40;
-        this.color = this.type === 'GROUND' ? '#ff4757' : '#ffa502';
-      }
-      update() { this.x -= gameSpeed; }
-      draw() {
-        ctx.fillStyle = this.color;
-        if (this.type === 'GROUND') {
-          ctx.beginPath();
-          ctx.moveTo(this.x, this.y + this.height);
-          ctx.lineTo(this.x + this.width / 2, this.y);
-          ctx.lineTo(this.x + this.width, this.y + this.height);
-          ctx.fill();
-        } else {
-          ctx.fillRect(this.x, this.y, this.width, this.height);
-        }
-      }
-    }
-
-    function checkCollision(r1, r2) {
-      return (r1.x + 6 < r2.x + r2.width && r1.x + r1.width - 6 > r2.x && r1.y + 6 < r2.y + r2.height && r1.y + r1.height - 6 > r2.y);
-    }
-
-    function gameOver() {
-      gameState = 'GAMEOVER';
-      bgmAudio.pause();
-      
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem('runner_highscore', highScore);
-        highScoreVal.textContent = Math.floor(highScore);
-        logoContainer.innerHTML = '<div class="game-logo-text" style="color:#2ed573;">NEW RECORD!</div>';
-      } else {
-        logoContainer.innerHTML = '<div class="game-logo-text">GAME OVER</div>';
-      }
-      
-      overlayText.innerHTML = `SCORE: <strong>${Math.floor(score)}</strong>`;
-      startBtn.textContent = 'RETRY';
-      overlay.classList.remove('hidden');
-    }
-
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      ctx.fillStyle = '#2ed573';
-      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
-
-      if (gameState === 'PLAYING') {
-        frameCount++;
-        score += gameSpeed * 0.03;
-        scoreVal.textContent = Math.floor(score);
-        gameSpeed += 0.002;
-
-        player.update();
-
-        nextObstacleTimer--;
-        if (nextObstacleTimer <= 0) {
-          obstacles.push(new Obstacle());
-          nextObstacleTimer = Math.max(30, 85 - gameSpeed * 3.0) + Math.random() * 35;
-        }
-
-        for (let i = obstacles.length - 1; i >= 0; i--) {
-          const obs = obstacles[i];
-          obs.update();
-          if (checkCollision(player, obs)) gameOver();
-          if (obs.x + obs.width < 0) obstacles.splice(i, 1);
-        }
-      }
-
-      obstacles.forEach(obs => obs.draw());
-      player.draw();
-      requestAnimationFrame(gameLoop);
-    }
-
-    window.addEventListener('touchstart', (e) => {
-      if (e.target !== startBtn && e.target !== document.getElementById('fsBtn') && gameState === 'PLAYING') {
-        player.jump();
-      }
-    }, { passive: true });
-
-    startBtn.addEventListener('click', () => {
-      logoContainer.innerHTML = '<img src="logo.png" alt="SUPER RUNNER" class="logo-img" id="logoImg" onerror="showTextLogo()">';
-      score = 0; gameSpeed = 6.0; obstacles = []; player.reset();
-      gameState = 'PLAYING';
-      overlay.classList.add('hidden');
-      bgmAudio.currentTime = 0;
-      bgmAudio.play().catch(()=>{});
-    });
-
-    gameLoop();
-  </script>
-</body>
-</html>
+        else if (this.animFrame === 1 && images.run2 && images.run2.complete &&
