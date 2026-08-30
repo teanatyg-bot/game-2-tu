@@ -38,7 +38,7 @@
       height: 100svh;
       max-width: 177.78svh;
       max-height: 56.25vw;
-      background: #60a5fa;
+      background: #0f172a;
       overflow: hidden;
     }
 
@@ -62,16 +62,66 @@
       z-index: 10;
     }
 
-    .score-board {
+    .header-ui {
       display: flex;
       justify-content: space-between;
-      font-size: 20px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .left-ui {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .lives-container {
+      display: flex;
+      gap: 4px;
+      font-size: 22px;
+      filter: drop-shadow(2px 2px 0 #000);
+    }
+
+    .score-board {
+      display: flex;
+      gap: 15px;
+      font-size: 18px;
       font-weight: 900;
       text-shadow: 2px 2px 0 #000, -2px -2px 0 #000;
     }
 
     .score-board .current-score { color: #fde047; }
     .score-board .high-score { color: #4ade80; }
+
+    .level-badge {
+      font-size: 18px;
+      font-weight: 900;
+      color: #ffffff;
+      background: rgba(15, 23, 42, 0.7);
+      padding: 4px 16px;
+      border-radius: 20px;
+      border: 2px solid #38bdf8;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    .btn-pause {
+      pointer-events: auto;
+      background: #f59e0b;
+      border: 2px solid #ffffff;
+      color: #ffffff;
+      font-weight: 900;
+      font-family: 'Fredoka One', sans-serif;
+      padding: 6px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #b45309;
+      font-size: 16px;
+    }
+
+    .btn-pause:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #b45309;
+    }
 
     .overlay-screen {
       position: absolute;
@@ -103,7 +153,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.4);
       z-index: 1;
     }
 
@@ -138,7 +188,7 @@
       color: #ffffff;
       margin-bottom: 15px;
       text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.5);
       padding: 4px 16px;
       border-radius: 20px;
     }
@@ -171,12 +221,29 @@
     <canvas id="gameCanvas"></canvas>
 
     <div class="ui-layer">
-      <div class="score-board">
-        <div class="current-score">SCORE: <span id="scoreVal">0</span></div>
-        <div class="high-score">BEST: <span id="highScoreVal">0</span></div>
+      <div class="header-ui">
+        <div class="left-ui">
+          <div id="livesVal" class="lives-container">❤️ ❤️</div>
+          <div class="score-board">
+            <div class="current-score">SCORE: <span id="scoreVal">0</span></div>
+            <div class="high-score">BEST: <span id="highScoreVal">0</span></div>
+          </div>
+        </div>
+        <div class="level-badge">LEVEL <span id="levelVal">1</span></div>
+        <button id="pauseBtn" class="btn-pause">PAUSE</button>
       </div>
     </div>
 
+    <!-- ポーズ画面 -->
+    <div id="pauseOverlay" class="overlay-screen hidden">
+      <div class="logo-container">
+        <div class="game-logo-text" style="color: #f59e0b;">PAUSED</div>
+      </div>
+      <p class="overlay-subtext">一時停止中</p>
+      <button id="resumeBtn" class="btn-start" style="background:#38bdf8; box-shadow:0 4px 0 #0284c7;">RESUME</button>
+    </div>
+
+    <!-- スタート／ゲームオーバー画面 -->
     <div id="overlay" class="overlay-screen">
       <div class="logo-container" id="logoContainer">
         <img src="logo.png" alt="SUPER RUNNER" class="logo-img" id="logoImg" onerror="showTextLogo()">
@@ -195,7 +262,7 @@
     }
 
     // --- 音声・画像設定 ---
-    const AUDIO_FILES = { bgm: 'bgm.mp3', jump: 'jump.mp3' };
+    const AUDIO_FILES = { bgm: 'bgm.mp3', jump: 'jump.mp3', score: 'score_milestone.mp3' };
     const PLAYER_IMAGES = { run1: 'run1.png', run2: 'run2.png', jump: 'jump.png' };
 
     const bgmAudio = new Audio(AUDIO_FILES.bgm);
@@ -205,11 +272,21 @@
     const jumpAudioBase = new Audio(AUDIO_FILES.jump);
     jumpAudioBase.volume = 0.6;
 
-    // ジャンプ音連続再生処理
+    const scoreAudioBase = new Audio(AUDIO_FILES.score);
+    scoreAudioBase.volume = 0.7;
+
     function playJumpSound() {
       try {
         const soundClone = jumpAudioBase.cloneNode();
         soundClone.volume = 0.6;
+        soundClone.play().catch(()=>{});
+      } catch(e){}
+    }
+
+    function playScoreSound() {
+      try {
+        const soundClone = scoreAudioBase.cloneNode();
+        soundClone.volume = 0.7;
         soundClone.play().catch(()=>{});
       } catch(e){}
     }
@@ -228,27 +305,50 @@
 
     const scoreVal = document.getElementById('scoreVal');
     const highScoreVal = document.getElementById('highScoreVal');
+    const levelVal = document.getElementById('levelVal');
+    const livesVal = document.getElementById('livesVal');
     const overlay = document.getElementById('overlay');
+    const pauseOverlay = document.getElementById('pauseOverlay');
     const logoContainer = document.getElementById('logoContainer');
     const overlayText = document.getElementById('overlayText');
     const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
 
     const GROUND_Y = 370;
     const GRAVITY = 0.85;
 
     let gameState = 'START';
     let score = 0;
+    let lastMilestone = 0;
+    let level = 1;
+    let lives = 2;
     let highScore = localStorage.getItem('runner_highscore') || 0;
     highScoreVal.textContent = Math.floor(highScore);
 
-    let gameSpeed = 6.0;
+    let gameSpeed = 6.5;
     let frameCount = 0;
+
+    // --- 背景要素の設定 ---
+    const stars = Array.from({ length: 30 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * (GROUND_Y - 100),
+      size: Math.random() * 2 + 1,
+      speed: Math.random() * 0.3 + 0.1
+    }));
+
+    const buildings = Array.from({ length: 8 }, (_, i) => ({
+      x: i * 110,
+      width: 80 + Math.random() * 30,
+      height: 100 + Math.random() * 80
+    }));
 
     // プレイヤーオブジェクト
     const player = {
       x: 80, y: GROUND_Y - 60, width: 50, height: 60,
       velocityY: 0, jumpPower: -15.5, jumpCount: 0, maxJumps: 2,
       isGrounded: false, animFrame: 0,
+      invincibleFrames: 0, // 被弾後の無敵フラグ
       
       reset() {
         this.y = GROUND_Y - this.height;
@@ -256,6 +356,7 @@
         this.jumpCount = 0;
         this.isGrounded = true;
         this.animFrame = 0;
+        this.invincibleFrames = 0;
       },
       jump() {
         if (this.jumpCount < this.maxJumps) {
@@ -275,8 +376,12 @@
           this.jumpCount = 0;
         }
         if (frameCount % 6 === 0) this.animFrame = (this.animFrame + 1) % 2;
+        if (this.invincibleFrames > 0) this.invincibleFrames--;
       },
       draw() {
+        // 無敵時間中は点滅表示
+        if (this.invincibleFrames % 6 >= 3) return;
+
         let currentImg = null;
         if (!this.isGrounded && images.jump && images.jump.complete && images.jump.naturalWidth > 0) currentImg = images.jump;
         else if (this.animFrame === 0 && images.run1 && images.run1.complete && images.run1.naturalWidth > 0) currentImg = images.run1;
@@ -296,36 +401,181 @@
 
     class Obstacle {
       constructor() {
-        const airRatio = Math.min(0.5, 0.25 + score * 0.0005);
+        const airRatio = Math.min(0.5, 0.25 + level * 0.05);
         this.type = Math.random() < airRatio ? 'AIR' : 'GROUND';
-        this.width = this.type === 'GROUND' ? 35 + Math.random() * 20 : 45;
-        this.height = this.type === 'GROUND' ? 45 + Math.random() * 30 : 35;
+        this.width = this.type === 'GROUND' ? 45 : 44;
+        this.height = this.type === 'GROUND' ? 55 : 44;
         this.x = canvas.width + 50;
-        this.y = this.type === 'GROUND' ? GROUND_Y - this.height : GROUND_Y - 110 - Math.random() * 40;
-        this.color = this.type === 'GROUND' ? '#ff4757' : '#ffa502';
+        this.y = this.type === 'GROUND' ? GROUND_Y - this.height : GROUND_Y - 105 - Math.random() * 35;
+        this.rotation = 0;
       }
-      update() { this.x -= gameSpeed; }
+      update() { 
+        this.x -= gameSpeed; 
+        if (this.type === 'AIR') this.rotation += 0.12;
+      }
       draw() {
-        ctx.fillStyle = this.color;
         if (this.type === 'GROUND') {
+          // --- 地上障害物：立体型デンジャラス・スパイク ---
+          ctx.save();
+          // メインの棘（赤〜黒グラデーション）
+          const grad = ctx.createLinearGradient(this.x, this.y, this.x + this.width, GROUND_Y);
+          grad.addColorStop(0, '#f43f5e');
+          grad.addColorStop(0.5, '#be123c');
+          grad.addColorStop(1, '#4c0519');
+          ctx.fillStyle = grad;
+
           ctx.beginPath();
-          ctx.moveTo(this.x, this.y + this.height);
-          ctx.lineTo(this.x + this.width / 2, this.y);
-          ctx.lineTo(this.x + this.width, this.y + this.height);
+          ctx.moveTo(this.x, GROUND_Y);
+          ctx.lineTo(this.x + this.width * 0.3, this.y);
+          ctx.lineTo(this.x + this.width * 0.6, GROUND_Y - 15);
+          ctx.lineTo(this.x + this.width, this.y + 10);
+          ctx.lineTo(this.x + this.width, GROUND_Y);
+          ctx.closePath();
           ctx.fill();
+
+          // 輪郭強調
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // 危険警告ストライプの土台
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(this.x - 2, GROUND_Y - 6, this.width + 4, 6);
+          ctx.fillStyle = '#000';
+          for (let i = 0; i < this.width; i += 10) {
+            ctx.fillRect(this.x + i, GROUND_Y - 6, 5, 6);
+          }
+          ctx.restore();
+
         } else {
-          ctx.fillRect(this.x, this.y, this.width, this.height);
+          // --- 空中障害物：メカニカル・ソーブレード ---
+          ctx.save();
+          ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+          ctx.rotate(this.rotation);
+
+          const r = this.width / 2;
+          
+          // 金属刃グラデーション
+          const metalGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, r);
+          metalGrad.addColorStop(0, '#ffffff');
+          metalGrad.addColorStop(0.4, '#94a3b8');
+          metalGrad.addColorStop(0.8, '#334155');
+          metalGrad.addColorStop(1, '#0f172a');
+
+          ctx.fillStyle = metalGrad;
+          ctx.beginPath();
+          const teeth = 10;
+          for (let i = 0; i < teeth; i++) {
+            const a1 = (Math.PI * 2 / teeth) * i;
+            const a2 = a1 + (Math.PI / teeth);
+            ctx.lineTo(Math.cos(a1) * r, Math.sin(a1) * r);
+            ctx.lineTo(Math.cos(a2) * (r * 0.65), Math.sin(a2) * (r * 0.65));
+          }
+          ctx.closePath();
+          ctx.fill();
+
+          // コア（発光体）
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.3, 0, Math.PI * 2);
+          ctx.fillStyle = '#ef4444';
+          ctx.fill();
+          ctx.strokeStyle = '#fef08a';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.restore();
         }
       }
     }
 
     function checkCollision(r1, r2) {
-      return (r1.x + 6 < r2.x + r2.width && r1.x + r1.width - 6 > r2.x && r1.y + 6 < r2.y + r2.height && r1.y + r1.height - 6 > r2.y);
+      return (r1.x + 8 < r2.x + r2.width && r1.x + r1.width - 8 > r2.x && r1.y + 8 < r2.y + r2.height && r1.y + r1.height - 8 > r2.y);
+    }
+
+    // --- 背景描画システム ---
+    function drawBackground() {
+      // 1. 夜空のグラデーション
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+      skyGrad.addColorStop(0, '#020617');
+      skyGrad.addColorStop(0.6, '#1e1b4b');
+      skyGrad.addColorStop(1, '#312e81');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, canvas.width, GROUND_Y);
+
+      // 2. 星空（遠景スクロール）
+      ctx.fillStyle = '#ffffff';
+      stars.forEach(s => {
+        if (gameState === 'PLAYING') s.x -= s.speed;
+        if (s.x < 0) s.x = canvas.width;
+        ctx.fillRect(s.x, s.y, s.size, s.size);
+      });
+
+      // 3. ビル群のシルエット（中景スクロール）
+      ctx.fillStyle = '#1e293b';
+      buildings.forEach(b => {
+        if (gameState === 'PLAYING') b.x -= gameSpeed * 0.2;
+        if (b.x + b.width < 0) b.x = canvas.width + Math.random() * 40;
+        ctx.fillRect(b.x, GROUND_Y - b.height, b.width, b.height);
+        
+        // 小窓の描画
+        ctx.fillStyle = '#38bdf8';
+        for (let wy = GROUND_Y - b.height + 12; wy < GROUND_Y - 15; wy += 20) {
+          for (let wx = b.x + 8; wx < b.x + b.width - 12; wx += 16) {
+            if ((wx + wy) % 3 === 0) ctx.fillRect(wx, wy, 6, 8);
+          }
+        }
+        ctx.fillStyle = '#1e293b';
+      });
+
+      // 4. 近景：グラデーション地面
+      const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, canvas.height);
+      groundGrad.addColorStop(0, '#15803d');
+      groundGrad.addColorStop(0.2, '#166534');
+      groundGrad.addColorStop(1, '#052e16');
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+
+      // 地面表面の芝生・スピードライン
+      ctx.fillStyle = '#4ade80';
+      ctx.fillRect(0, GROUND_Y, canvas.width, 4);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      const lineOffset = (frameCount * gameSpeed) % 60;
+      for (let x = -lineOffset; x < canvas.width; x += 60) {
+        ctx.fillRect(x, GROUND_Y + 12, 30, 4);
+      }
+    }
+
+    // ライフ表示の更新 & BGM速度制御
+    function updateLivesUI() {
+      if (lives === 2) {
+        livesVal.textContent = '❤️ ❤️';
+        bgmAudio.playbackRate = 1.0;
+      } else if (lives === 1) {
+        livesVal.textContent = '❤️ 🖤';
+        // ライフが残り1つでBGMを1.5倍速へ
+        bgmAudio.playbackRate = 1.5;
+      } else {
+        livesVal.textContent = '🖤 🖤';
+      }
+    }
+
+    function togglePause() {
+      if (gameState === 'PLAYING') {
+        gameState = 'PAUSED';
+        bgmAudio.pause();
+        pauseOverlay.classList.remove('hidden');
+      } else if (gameState === 'PAUSED') {
+        gameState = 'PLAYING';
+        bgmAudio.play().catch(()=>{});
+        pauseOverlay.classList.add('hidden');
+      }
     }
 
     function gameOver() {
       gameState = 'GAMEOVER';
       bgmAudio.pause();
+      bgmAudio.playbackRate = 1.0; // リセット
       
       if (score > highScore) {
         highScore = score;
@@ -336,7 +586,7 @@
         logoContainer.innerHTML = '<div class="game-logo-text">GAME OVER</div>';
       }
       
-      overlayText.innerHTML = `SCORE: <strong>${Math.floor(score)}</strong>`;
+      overlayText.innerHTML = `SCORE: <strong>${Math.floor(score)}</strong> (LEVEL ${level})`;
       startBtn.textContent = 'RETRY';
       overlay.classList.remove('hidden');
     }
@@ -344,27 +594,50 @@
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      ctx.fillStyle = '#2ed573';
-      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+      drawBackground();
 
       if (gameState === 'PLAYING') {
         frameCount++;
-        score += gameSpeed * 0.03;
+        score += gameSpeed * 0.035;
         scoreVal.textContent = Math.floor(score);
-        gameSpeed += 0.002;
+
+        // --- 500点突破ごとに難易度LEVEL上昇 ---
+        const currentLevel = Math.floor(score / 500) + 1;
+        if (currentLevel > level) {
+          level = currentLevel;
+          levelVal.textContent = level;
+          playScoreSound();
+        }
+
+        // LEVELに伴う速度調整
+        gameSpeed = 6.5 + (level - 1) * 0.9;
 
         player.update();
 
+        // 障害物の生成管理
         nextObstacleTimer--;
         if (nextObstacleTimer <= 0) {
           obstacles.push(new Obstacle());
-          nextObstacleTimer = Math.max(30, 85 - gameSpeed * 3.0) + Math.random() * 35;
+          const minDelay = Math.max(20, 60 - level * 4);
+          nextObstacleTimer = minDelay + Math.random() * 30;
         }
 
+        // 障害物の移動・衝突判定
         for (let i = obstacles.length - 1; i >= 0; i--) {
           const obs = obstacles[i];
           obs.update();
-          if (checkCollision(player, obs)) gameOver();
+
+          if (player.invincibleFrames === 0 && checkCollision(player, obs)) {
+            lives--;
+            updateLivesUI();
+
+            if (lives <= 0) {
+              gameOver();
+            } else {
+              player.invincibleFrames = 90; // 被弾後約1.5秒間無敵
+            }
+          }
+
           if (obs.x + obs.width < 0) obstacles.splice(i, 1);
         }
       }
@@ -382,28 +655,44 @@
     }
 
     window.addEventListener('touchstart', (e) => {
-      if (e.target !== startBtn) {
+      if (e.target !== startBtn && e.target !== pauseBtn && e.target !== resumeBtn) {
         handleJump(e);
       }
     }, { passive: true });
 
     window.addEventListener('mousedown', (e) => {
-      if (e.target !== startBtn) {
+      if (e.target !== startBtn && e.target !== pauseBtn && e.target !== resumeBtn) {
         handleJump(e);
       }
     });
 
-    // ゲーム開始処理（確実に動作するようにイベント修正）
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        if (gameState === 'PLAYING') player.jump();
+      } else if (e.code === 'KeyP') {
+        togglePause();
+      }
+    });
+
+    // ゲーム開始処理
     function startGame() {
       logoContainer.innerHTML = '<img src="logo.png" alt="SUPER RUNNER" class="logo-img" id="logoImg" onerror="showTextLogo()">';
       score = 0; 
-      gameSpeed = 6.0; 
+      lastMilestone = 0;
+      level = 1;
+      lives = 2;
+      levelVal.textContent = level;
+      updateLivesUI();
+
+      gameSpeed = 6.5; 
       obstacles = []; 
       player.reset();
       gameState = 'PLAYING';
       overlay.classList.add('hidden');
+      pauseOverlay.classList.add('hidden');
 
       bgmAudio.currentTime = 0;
+      bgmAudio.playbackRate = 1.0;
       bgmAudio.play().catch(()=>{});
     }
 
@@ -412,6 +701,9 @@
       e.preventDefault();
       startGame();
     });
+
+    pauseBtn.addEventListener('click', togglePause);
+    resumeBtn.addEventListener('click', togglePause);
 
     gameLoop();
   </script>
