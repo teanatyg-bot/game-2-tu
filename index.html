@@ -1,711 +1,844 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECLIPSE SHADOWS - エクリプス・シャドウズ</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
 
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #05050d;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #ffffff;
-        }
+  <title>SUPER RUNNER</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=M+PLUS+Rounded+1c:wght@800;900&family=Orbitron:wght@900&display=swap');
 
-        /* 共通キャンバス背景 */
-        #bg-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
+    }
 
-        /* UIコンテナ */
-        .ui-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.5s ease, visibility 0.5s;
-        }
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100svh;
+      overflow: hidden;
+      background-color: #000000;
+      font-family: 'M PLUS Rounded 1c', 'Fredoka One', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        .hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100svh;
+      max-width: 177.78svh;
+      max-height: 56.25vw;
+      background: #000;
+      overflow: hidden;
+    }
 
-        /* タイトル画面 */
-        .title-container {
-            text-align: center;
-            max-width: 800px;
-            padding: 20px;
-            z-index: 12;
-        }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
 
-        /* 指定画像のスタイル */
-        .title-logo-img {
-            max-width: 80%;
-            max-height: 220px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.6));
-            margin-bottom: 20px;
-            animation: float 4s ease-in-out infinite;
-        }
+    .ui-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px 20px;
+      z-index: 10;
+    }
 
-        /* 画像非表示時のテキストフォールバック */
-        .fallback-title {
-            display: none;
-            font-size: 3.5rem;
-            font-weight: 900;
-            letter-spacing: 8px;
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #00c6ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 242, 254, 0.5);
-            margin-bottom: 10px;
-            animation: float 4s ease-in-out infinite;
-        }
+    .header-ui {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
 
-        .subtitle {
-            font-size: 1.1rem;
-            color: #a0aec0;
-            letter-spacing: 4px;
-            margin-bottom: 40px;
-            text-transform: uppercase;
-        }
+    .left-ui {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
 
-        /* アニメーションボタン */
-        .btn {
-            position: relative;
-            padding: 16px 48px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: #ffffff;
-            background: rgba(15, 23, 42, 0.7);
-            border: 2px solid #00f2fe;
-            border-radius: 50px;
-            cursor: pointer;
-            outline: none;
-            overflow: hidden;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3), inset 0 0 15px rgba(0, 242, 254, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(8px);
-        }
+    .lives-container {
+      display: flex;
+      gap: 4px;
+      font-size: 24px;
+      filter: drop-shadow(0 0 6px rgba(255, 0, 85, 0.8));
+    }
 
-        .btn:hover {
-            background: #00f2fe;
-            color: #05050d;
-            box-shadow: 0 0 35px rgba(0, 242, 254, 0.8);
-            transform: translateY(-3px) scale(1.03);
-        }
+    .score-board {
+      display: flex;
+      gap: 15px;
+      font-size: 18px;
+      font-weight: 900;
+      text-shadow: 2px 2px 0 #000, -2px -2px 0 #000;
+    }
 
-        .btn:active {
-            transform: translateY(1px) scale(0.98);
-        }
+    .score-board .current-score { color: #fde047; }
+    .score-board .high-score { color: #4ade80; }
 
-        .controls-hint {
-            margin-top: 30px;
-            font-size: 0.9rem;
-            color: #718096;
-            line-height: 1.6;
-        }
+    .level-badge {
+      font-size: 18px;
+      font-weight: 900;
+      color: #ffffff;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 4px 16px;
+      border-radius: 20px;
+      border: 2px solid #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+      text-shadow: 1px 1px 2px #000;
+    }
 
-        /* ゲームプレイ画面 UI */
-        #hud {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 25px 35px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            z-index: 10;
-            pointer-events: none;
-        }
+    .btn-pause {
+      pointer-events: auto;
+      background: #f59e0b;
+      border: 2px solid #ffffff;
+      color: #ffffff;
+      font-weight: 900;
+      font-family: 'Fredoka One', sans-serif;
+      padding: 6px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #b45309;
+      font-size: 16px;
+    }
 
-        .hud-item {
-            display: flex;
-            flex-direction: column;
-        }
+    .btn-pause:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #b45309;
+    }
 
-        .hud-label {
-            font-size: 0.75rem;
-            letter-spacing: 2px;
-            color: #718096;
-            text-transform: uppercase;
-        }
+    .overlay-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('bg_title.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      z-index: 20;
+      overflow: hidden;
+    }
 
-        .hud-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #00f2fe;
-            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
-        }
+    .overlay-screen.hidden {
+      display: none !important;
+    }
 
-        .health-bar-container {
-            width: 220px;
-            height: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid rgba(0, 242, 254, 0.3);
-            margin-top: 5px;
-        }
+    .overlay-screen::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 1;
+    }
 
-        .health-bar-fill {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, #ff0055, #00f2fe);
-            box-shadow: 0 0 10px #00f2fe;
-            transition: width 0.2s ease-out;
-        }
+    /* --- タイトルロゴ＆強烈なエフェクト --- */
+    .logo-container {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 15px;
+      text-align: center;
+      max-width: 85%;
+    }
 
-        /* ゲームオーバー画面 */
-        .game-over-container {
-            text-align: center;
-            background: rgba(10, 15, 30, 0.85);
-            padding: 40px 60px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 0, 85, 0.4);
-            box-shadow: 0 0 40px rgba(255, 0, 85, 0.2);
-            backdrop-filter: blur(12px);
-        }
+    .logo-img {
+      width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 15px #ff0055) drop-shadow(0 0 30px #00f0ff);
+      animation: logoPulse 1.5s infinite alternate ease-in-out;
+    }
 
-        .game-over-title {
-            font-size: 3rem;
-            font-weight: 900;
-            color: #ff0055;
-            text-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
-            margin-bottom: 20px;
-            letter-spacing: 4px;
-        }
+    .game-logo-text {
+      font-family: 'Orbitron', 'Fredoka One', sans-serif;
+      font-size: clamp(42px, 9vw, 80px);
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.0;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #fff 0%, #ff0055 50%, #ffea00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.8)) drop-shadow(0 0 25px rgba(0, 240, 255, 0.8));
+      animation: intenseGlow 1.2s infinite alternate ease-in-out, glitchAnim 2.5s infinite;
+    }
 
-        .score-result {
-            font-size: 1.2rem;
-            color: #cbd5e0;
-            margin-bottom: 10px;
-        }
+    @keyframes logoPulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 15px #ff0055) drop-shadow(0 0 25px #00f0ff); }
+      100% { transform: scale(1.05); filter: drop-shadow(0 0 25px #ff0055) drop-shadow(0 0 45px #00f0ff); }
+    }
 
-        .final-score {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #00f2fe;
-            margin-bottom: 30px;
-            text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
-        }
+    @keyframes intenseGlow {
+      0% { filter: drop-shadow(0 0 8px #ff0055) drop-shadow(0 0 20px #00f0ff); }
+      100% { filter: drop-shadow(0 0 20px #ff0055) drop-shadow(0 0 40px #ffea00); }
+    }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-12px); }
-        }
-    </style>
+    @keyframes glitchAnim {
+      0%, 92%, 100% { transform: translate(0, 0); }
+      93% { transform: translate(-3px, 2px); }
+      95% { transform: translate(3px, -2px); }
+      97% { transform: translate(-2px, -1px); }
+    }
+
+    .overlay-subtext {
+      position: relative;
+      z-index: 2;
+      font-size: clamp(14px, 3.2vw, 20px);
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+      background: rgba(0, 0, 0, 0.65);
+      padding: 6px 20px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .high-score-display {
+      position: relative;
+      z-index: 2;
+      font-size: clamp(16px, 3.5vw, 22px);
+      font-weight: 900;
+      color: #4ade80;
+      margin-bottom: 12px;
+      text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+    }
+
+    .btn-start {
+      position: relative;
+      z-index: 30;
+      padding: 16px 50px;
+      font-family: 'Fredoka One', 'M PLUS Rounded 1c', sans-serif;
+      font-size: clamp(20px, 4.5vw, 28px);
+      font-weight: 900;
+      color: #ffffff;
+      background: linear-gradient(180deg, #2ed573 0%, #10ac84 100%);
+      border: 3px solid #ffffff;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #0652dd, 0 0 20px rgba(46, 213, 115, 0.6);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      transition: transform 0.1s;
+    }
+
+    .btn-start:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #0652dd, 0 0 10px rgba(46, 213, 115, 0.4);
+    }
+  </style>
 </head>
 <body>
 
-    <!-- 背景・ゲーム共有描画キャンバス -->
-    <canvas id="bg-canvas"></canvas>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
 
-    <!-- HUD (ゲームプレイ中のUI) -->
-    <div id="hud" class="hidden">
-        <div class="hud-item">
-            <span class="hud-label">Energy Barrier</span>
-            <div class="health-bar-container">
-                <div id="health-bar" class="health-bar-fill"></div>
-            </div>
+    <div class="ui-layer">
+      <div class="header-ui">
+        <div class="left-ui">
+          <div id="livesVal" class="lives-container">❤️ ❤️</div>
+          <div class="score-board">
+            <div class="current-score">SCORE: <span id="scoreVal">0</span></div>
+            <div class="high-score">BEST: <span id="highScoreVal">0</span></div>
+          </div>
         </div>
-        <div class="hud-item" style="align-items: flex-end;">
-            <span class="hud-label">Score</span>
-            <span id="score-display" class="hud-value">0</span>
-        </div>
+        <div class="level-badge">LEVEL <span id="levelVal">1</span></div>
+        <button id="pauseBtn" class="btn-pause">PAUSE</button>
+      </div>
     </div>
 
-    <!-- スタートタイトル画面 -->
-    <div id="title-screen" class="ui-screen">
-        <div class="title-container">
-            <!-- 指定タイトル画像 (読み込み失敗時はテキスト表示) -->
-            <img id="title-img" class="title-logo-img" src="title.png" alt="ECLIPSE SHADOWS" onerror="handleImageError(this)">
-            <h1 id="fallback-title" class="fallback-title">ECLIPSE SHADOWS</h1>
-            
-            <p class="subtitle">光と影のサイバーアクション</p>
-            <button id="start-btn" class="btn">ゲームスタート</button>
-            <div class="controls-hint">
-                [操作方法]<br>
-                移動: マウス追従 または キーボード [W][A][S][D] / [矢印キー]<br>
-                クリック / スペースキー: エナジーパルス（範囲攻撃）
-            </div>
-        </div>
+    <!-- ポーズ画面 -->
+    <div id="pauseOverlay" class="overlay-screen hidden">
+      <div class="logo-container">
+        <div class="game-logo-text" style="background: linear-gradient(180deg, #fff, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PAUSED</div>
+      </div>
+      <p class="overlay-subtext">一時停止中</p>
+      <button id="resumeBtn" class="btn-start" style="background: linear-gradient(180deg, #38bdf8, #0284c7); box-shadow:0 4px 0 #0369a1;">RESUME</button>
     </div>
 
-    <!-- リザルト（ゲームオーバー）画面 -->
-    <div id="game-over-screen" class="ui-screen hidden">
-        <div class="game-over-container">
-            <h2 class="game-over-title">SYSTEM OFFLINE</h2>
-            <p class="score-result">獲得スコア</p>
-            <div id="final-score-display" class="final-score">0</div>
-            <button id="restart-btn" class="btn">再起動 (RESTART)</button>
-        </div>
+    <!-- スタート／ゲームオーバー画面 -->
+    <div id="overlay" class="overlay-screen">
+      <div class="logo-container" id="logoContainer">
+        <img src="logo.png" alt="SUPER RUNNER" class="logo-img" id="logoImg" onerror="showTextLogo()">
+      </div>
+
+      <div id="highScoreText" class="high-score-display">BEST SCORE: <span id="overlayHighScore">0</span></div>
+      <p id="overlayText" class="overlay-subtext">タップしてゲームスタート！</p>
+      
+      <button id="startBtn" class="btn-start">GAME START</button>
     </div>
+  </div>
 
-    <script>
-        // 画像読み込みエラー時の対応処理
-        function handleImageError(img) {
-            img.style.display = 'none';
-            document.getElementById('fallback-title').style.display = 'block';
+  <script>
+    function showTextLogo() {
+      const container = document.getElementById('logoContainer');
+      container.innerHTML = '<div class="game-logo-text">SUPER RUNNER</div>';
+    }
+
+    // --- 音声・画像設定 ---
+    const AUDIO_FILES = { 
+      bgm: 'bgm.mp3', 
+      jump: 'jump.mp3', 
+      score: 'score_milestone.mp3',
+      damage: 'damage.mp3' // ライフを失う際の効果音を追加
+    };
+    const PLAYER_IMAGES = { run1: 'run1.png', run2: 'run2.png', jump: 'jump.png' };
+
+    const bgmAudio = new Audio(AUDIO_FILES.bgm);
+    bgmAudio.loop = true;
+    bgmAudio.volume = 0.4;
+
+    const jumpAudioBase = new Audio(AUDIO_FILES.jump);
+    jumpAudioBase.volume = 0.6;
+
+    const scoreAudioBase = new Audio(AUDIO_FILES.score);
+    scoreAudioBase.volume = 0.7;
+
+    const damageAudioBase = new Audio(AUDIO_FILES.damage);
+    damageAudioBase.volume = 0.8;
+
+    function playJumpSound() {
+      try {
+        const soundClone = jumpAudioBase.cloneNode();
+        soundClone.volume = 0.6;
+        soundClone.play().catch(()=>{});
+      } catch(e){}
+    }
+
+    function playScoreSound() {
+      try {
+        const soundClone = scoreAudioBase.cloneNode();
+        soundClone.volume = 0.7;
+        soundClone.play().catch(()=>{});
+      } catch(e){}
+    }
+
+    function playDamageSound() {
+      try {
+        const soundClone = damageAudioBase.cloneNode();
+        soundClone.volume = 0.8;
+        soundClone.play().catch(()=>{});
+      } catch(e){}
+    }
+
+    const images = {};
+    Object.keys(PLAYER_IMAGES).forEach(key => {
+      const img = new Image();
+      img.src = PLAYER_IMAGES[key];
+      images[key] = img;
+    });
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 800;
+    canvas.height = 450;
+
+    const scoreVal = document.getElementById('scoreVal');
+    const highScoreVal = document.getElementById('highScoreVal');
+    const overlayHighScore = document.getElementById('overlayHighScore');
+    const levelVal = document.getElementById('levelVal');
+    const livesVal = document.getElementById('livesVal');
+    const overlay = document.getElementById('overlay');
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    const logoContainer = document.getElementById('logoContainer');
+    const overlayText = document.getElementById('overlayText');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+
+    const GROUND_Y = 370;
+    const GRAVITY = 0.85;
+
+    let gameState = 'START';
+    let score = 0;
+    let level = 1;
+    let lives = 2;
+    let highScore = localStorage.getItem('runner_highscore') || 0;
+
+    function updateHighScoreDisplays() {
+      highScoreVal.textContent = Math.floor(highScore);
+      overlayHighScore.textContent = Math.floor(highScore);
+    }
+    updateHighScoreDisplays();
+
+    let gameSpeed = 6.5;
+    let frameCount = 0;
+
+    // --- 超リアルな背景構成要素 ---
+    const stars = Array.from({ length: 50 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * (GROUND_Y - 120),
+      size: Math.random() * 2 + 0.8,
+      alpha: Math.random(),
+      twinkleSpeed: Math.random() * 0.05 + 0.01
+    }));
+
+    const buildings = Array.from({ length: 12 }, (_, i) => ({
+      x: i * 85,
+      width: 60 + Math.random() * 40,
+      height: 120 + Math.random() * 120,
+      windowColor: Math.random() < 0.3 ? '#ff0055' : (Math.random() < 0.6 ? '#00f0ff' : '#fde047'),
+      hasBeacon: Math.random() < 0.4
+    }));
+
+    // プレイヤーオブジェクト
+    const player = {
+      x: 80, y: GROUND_Y - 60, width: 50, height: 60,
+      velocityY: 0, jumpPower: -15.5, jumpCount: 0, maxJumps: 2,
+      isGrounded: false, animFrame: 0,
+      invincibleFrames: 0,
+      
+      reset() {
+        this.y = GROUND_Y - this.height;
+        this.velocityY = 0;
+        this.jumpCount = 0;
+        this.isGrounded = true;
+        this.animFrame = 0;
+        this.invincibleFrames = 0;
+      },
+      jump() {
+        if (this.jumpCount < this.maxJumps) {
+          this.velocityY = this.jumpPower;
+          this.jumpCount++;
+          this.isGrounded = false;
+          playJumpSound();
+        }
+      },
+      update() {
+        this.velocityY += GRAVITY;
+        this.y += this.velocityY;
+        if (this.y >= GROUND_Y - this.height) {
+          this.y = GROUND_Y - this.height;
+          this.velocityY = 0;
+          this.isGrounded = true;
+          this.jumpCount = 0;
+        }
+        if (frameCount % 6 === 0) this.animFrame = (this.animFrame + 1) % 2;
+        if (this.invincibleFrames > 0) this.invincibleFrames--;
+      },
+      draw() {
+        if (this.invincibleFrames % 6 >= 3) return;
+
+        let currentImg = null;
+        if (!this.isGrounded && images.jump && images.jump.complete && images.jump.naturalWidth > 0) currentImg = images.jump;
+        else if (this.animFrame === 0 && images.run1 && images.run1.complete && images.run1.naturalWidth > 0) currentImg = images.run1;
+        else if (this.animFrame === 1 && images.run2 && images.run2.complete && images.run2.naturalWidth > 0) currentImg = images.run2;
+
+        if (currentImg) {
+          ctx.drawImage(currentImg, this.x, this.y, this.width, this.height);
+        } else {
+          ctx.fillStyle = '#ff4757';
+          ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+      }
+    };
+
+    let obstacles = [];
+    let nextObstacleTimer = 0;
+
+    // --- 作りこまれたリアルな障害物 ---
+    class Obstacle {
+      constructor() {
+        const airRatio = Math.min(0.5, 0.25 + level * 0.05);
+        this.type = Math.random() < airRatio ? 'AIR' : 'GROUND';
+        this.width = this.type === 'GROUND' ? 46 : 48;
+        this.height = this.type === 'GROUND' ? 58 : 48;
+        this.x = canvas.width + 50;
+        this.y = this.type === 'GROUND' ? GROUND_Y - this.height : GROUND_Y - 110 - Math.random() * 35;
+        this.rotation = 0;
+        this.glowPhase = Math.random() * Math.PI * 2;
+      }
+      update() { 
+        this.x -= gameSpeed; 
+        if (this.type === 'AIR') this.rotation += 0.15;
+        this.glowPhase += 0.1;
+      }
+      draw() {
+        ctx.save();
+        if (this.type === 'GROUND') {
+          // --- 地上：ハイテール超グラフィック・メタルスパイク ---
+          // 影
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.beginPath();
+          ctx.ellipse(this.x + this.width / 2, GROUND_Y, this.width / 2 + 5, 6, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // メインボディ（リアルなグラデーションシェーディング）
+          const metalGrad = ctx.createLinearGradient(this.x, this.y, this.x + this.width, GROUND_Y);
+          metalGrad.addColorStop(0, '#1e293b');
+          metalGrad.addColorStop(0.3, '#475569');
+          metalGrad.addColorStop(0.7, '#0f172a');
+          metalGrad.addColorStop(1, '#020617');
+
+          ctx.fillStyle = metalGrad;
+          ctx.beginPath();
+          ctx.moveTo(this.x + 4, GROUND_Y);
+          ctx.lineTo(this.x + this.width * 0.35, this.y);
+          ctx.lineTo(this.x + this.width * 0.6, GROUND_Y - 20);
+          ctx.lineTo(this.x + this.width - 2, this.y + 12);
+          ctx.lineTo(this.x + this.width, GROUND_Y);
+          ctx.closePath();
+          ctx.fill();
+
+          // エッジハイライト（金属光沢）
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // 発光線（エネルギーコア）
+          const glowAlpha = Math.sin(this.glowPhase) * 0.3 + 0.7;
+          ctx.strokeStyle = `rgba(255, 0, 85, ${glowAlpha})`;
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = '#ff0055';
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.moveTo(this.x + this.width * 0.35, this.y + 4);
+          ctx.lineTo(this.x + this.width * 0.35, GROUND_Y - 5);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // 危険用デンジャーベースプレート
+          ctx.fillStyle = '#111';
+          ctx.fillRect(this.x - 4, GROUND_Y - 8, this.width + 8, 8);
+          ctx.fillStyle = '#eab308';
+          for (let i = 0; i < this.width + 6; i += 12) {
+            ctx.fillRect(this.x - 4 + i, GROUND_Y - 8, 6, 8);
+          }
+        } else {
+          // --- 空中：精密メカニカル・ソーブレード（ドローン型） ---
+          ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+          
+          // アウターネオンリング
+          ctx.shadowColor = '#00f0ff';
+          ctx.shadowBlur = 12;
+          ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, this.width / 2 + 3, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // 回転鋸刃
+          ctx.rotate(this.rotation);
+          const r = this.width / 2;
+          const bladeGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, r);
+          bladeGrad.addColorStop(0, '#f8fafc');
+          bladeGrad.addColorStop(0.5, '#64748b');
+          bladeGrad.addColorStop(0.9, '#1e293b');
+          bladeGrad.addColorStop(1, '#00f0ff');
+
+          ctx.fillStyle = bladeGrad;
+          ctx.beginPath();
+          const teeth = 12;
+          for (let i = 0; i < teeth; i++) {
+            const a1 = (Math.PI * 2 / teeth) * i;
+            const a2 = a1 + (Math.PI / (teeth * 2));
+            const a3 = a1 + (Math.PI / teeth);
+            ctx.lineTo(Math.cos(a1) * r, Math.sin(a1) * r);
+            ctx.lineTo(Math.cos(a2) * (r * 1.15), Math.sin(a2) * (r * 1.15));
+            ctx.lineTo(Math.cos(a3) * (r * 0.7), Math.sin(a3) * (r * 0.7));
+          }
+          ctx.closePath();
+          ctx.fill();
+
+          // 鋸のメカニカル構造（内枠）
+          ctx.fillStyle = '#0f172a';
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 核心赤色LED発光部
+          ctx.fillStyle = '#ff0055';
+          ctx.shadowColor = '#ff0055';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.25, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    function checkCollision(r1, r2) {
+      return (r1.x + 8 < r2.x + r2.width && r1.x + r1.width - 8 > r2.x && r1.y + 8 < r2.y + r2.height && r1.y + r1.height - 8 > r2.y);
+    }
+
+    // --- リアル背景描画システム ---
+    function drawBackground() {
+      // 1. グラデーション夜空
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+      skyGrad.addColorStop(0, '#030712');
+      skyGrad.addColorStop(0.4, '#0f0728');
+      skyGrad.addColorStop(0.8, '#1f0d3d');
+      skyGrad.addColorStop(1, '#3b0764');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, canvas.width, GROUND_Y);
+
+      // 2. 星空（またたきアニメーション）
+      stars.forEach(s => {
+        if (gameState === 'PLAYING') s.x -= s.size * 0.15;
+        if (s.x < 0) s.x = canvas.width;
+        s.alpha += s.twinkleSpeed;
+        if (s.alpha > 1 || s.alpha < 0.2) s.twinkleSpeed = -s.twinkleSpeed;
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, Math.min(1, s.alpha))})`;
+        ctx.fillRect(s.x, s.y, s.size, s.size);
+      });
+
+      // 3. 超リアルなネオンサイバーシティ（ビル群）
+      buildings.forEach(b => {
+        if (gameState === 'PLAYING') b.x -= gameSpeed * 0.2;
+        if (b.x + b.width < 0) b.x = canvas.width + Math.random() * 40;
+
+        // ビル本体
+        const bGrad = ctx.createLinearGradient(b.x, GROUND_Y - b.height, b.x + b.width, GROUND_Y);
+        bGrad.addColorStop(0, '#111827');
+        bGrad.addColorStop(1, '#030712');
+        ctx.fillStyle = bGrad;
+        ctx.fillRect(b.x, GROUND_Y - b.height, b.width, b.height);
+
+        // ビルのネオン縁取り
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(b.x, GROUND_Y - b.height, b.width, b.height);
+
+        // ビルの窓の光
+        ctx.fillStyle = b.windowColor;
+        for (let wy = GROUND_Y - b.height + 12; wy < GROUND_Y - 15; wy += 18) {
+          for (let wx = b.x + 6; wx < b.x + b.width - 10; wx += 12) {
+            if ((wx * 7 + wy * 13) % 5 < 3) {
+              ctx.globalAlpha = 0.6;
+              ctx.fillRect(wx, wy, 5, 7);
+            }
+          }
+        }
+        ctx.globalAlpha = 1.0;
+
+        // 航空障害灯（赤LED）
+        if (b.hasBeacon) {
+          const beaconGlow = Math.sin(frameCount * 0.08) * 0.5 + 0.5;
+          ctx.fillStyle = `rgba(255, 0, 85, ${beaconGlow})`;
+          ctx.beginPath();
+          ctx.arc(b.x + b.width / 2, GROUND_Y - b.height - 3, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // 4. 地面（サイバーグリッド・グラデーションライン）
+      const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, canvas.height);
+      groundGrad.addColorStop(0, '#0f172a');
+      groundGrad.addColorStop(0.3, '#020617');
+      groundGrad.addColorStop(1, '#000000');
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+
+      // 発光グランドライン
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#00f0ff';
+      ctx.fillRect(0, GROUND_Y, canvas.width, 3);
+      ctx.shadowBlur = 0;
+
+      // グリッドスピードライン
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
+      ctx.lineWidth = 1.5;
+      const offset = (frameCount * gameSpeed) % 40;
+      for (let x = -offset; x < canvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, GROUND_Y);
+        ctx.lineTo(x - 20, canvas.height);
+        ctx.stroke();
+      }
+    }
+
+    // ライフ表示の更新 & BGM速度制御
+    function updateLivesUI() {
+      if (lives === 2) {
+        livesVal.textContent = '❤️ ❤️';
+        bgmAudio.playbackRate = 1.0;
+      } else if (lives === 1) {
+        livesVal.textContent = '❤️ 🖤';
+        // ライフが残り1つの時、BGM速度を1.2倍に変更
+        bgmAudio.playbackRate = 1.2;
+      } else {
+        livesVal.textContent = '🖤 🖤';
+      }
+    }
+
+    function togglePause() {
+      if (gameState === 'PLAYING') {
+        gameState = 'PAUSED';
+        bgmAudio.pause();
+        pauseOverlay.classList.remove('hidden');
+      } else if (gameState === 'PAUSED') {
+        gameState = 'PLAYING';
+        bgmAudio.play().catch(()=>{});
+        pauseOverlay.classList.add('hidden');
+      }
+    }
+
+    function gameOver() {
+      gameState = 'GAMEOVER';
+      bgmAudio.pause();
+      bgmAudio.playbackRate = 1.0;
+      
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('runner_highscore', highScore);
+        updateHighScoreDisplays();
+        logoContainer.innerHTML = '<div class="game-logo-text" style="background: linear-gradient(180deg, #fff, #2ed573); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">NEW RECORD!</div>';
+      } else {
+        logoContainer.innerHTML = '<div class="game-logo-text" style="background: linear-gradient(180deg, #fff, #ff4757); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">GAME OVER</div>';
+      }
+      
+      overlayText.innerHTML = `FINAL SCORE: <strong>${Math.floor(score)}</strong> (LEVEL ${level})`;
+      startBtn.textContent = 'RETRY';
+      overlay.classList.remove('hidden');
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      drawBackground();
+
+      if (gameState === 'PLAYING') {
+        frameCount++;
+        score += gameSpeed * 0.035;
+        scoreVal.textContent = Math.floor(score);
+
+        // --- 200点ごとに難易度向上の仕様に変更 ---
+        const currentLevel = Math.floor(score / 200) + 1;
+        if (currentLevel > level) {
+          level = currentLevel;
+          levelVal.textContent = level;
+          playScoreSound(); // レベルアップ効果音
         }
 
-        // Web Audio API による効果音生成システム
-        class SoundFX {
-            constructor() {
-                this.ctx = null;
-            }
+        // LEVELに伴う速度調整
+        gameSpeed = 6.5 + (level - 1) * 0.7;
 
-            init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (this.ctx.state === 'suspended') {
-                    this.ctx.resume();
-                }
-            }
+        player.update();
 
-            playStart() {
-                if (!this.ctx) return;
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.exponentialRampToValueAtTime(880, now + 0.4);
-                
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.4);
-            }
-
-            playCollect() {
-                if (!this.ctx) return;
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now);
-                osc.frequency.setValueAtTime(659.25, now + 0.08);
-                osc.frequency.setValueAtTime(783.99, now + 0.16);
-                
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.25);
-            }
-
-            playHit() {
-                if (!this.ctx) return;
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
-                
-                gain.gain.setValueAtTime(0.4, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-                
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.2);
-            }
-
-            playPulse() {
-                if (!this.ctx) return;
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
-                
-                gain.gain.setValueAtTime(0.4, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            }
+        // 障害物の生成管理
+        nextObstacleTimer--;
+        if (nextObstacleTimer <= 0) {
+          obstacles.push(new Obstacle());
+          const minDelay = Math.max(18, 55 - level * 3);
+          nextObstacleTimer = minDelay + Math.random() * 25;
         }
 
-        const audio = new SoundFX();
+        // 障害物の移動・衝突判定
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          const obs = obstacles[i];
+          obs.update();
 
-        // ゲームシステム本体
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
+          if (player.invincibleFrames === 0 && checkCollision(player, obs)) {
+            lives--;
+            playDamageSound(); // 被弾（ライフ損失）効果音を再生
+            updateLivesUI();
 
-        let width, height;
-        function resizeCanvas() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // ゲーム状態
-        let gameState = 'title'; // 'title', 'playing', 'gameover'
-        let score = 0;
-        let health = 100;
-        let frameCount = 0;
-
-        // プレイヤーオブジェクト
-        const player = {
-            x: width / 2,
-            y: height / 2,
-            radius: 16,
-            targetX: width / 2,
-            targetY: height / 2,
-            speed: 0.15,
-            pulseRadius: 0,
-            pulseActive: false,
-            pulseMaxRadius: 150
-        };
-
-        // 配列管理
-        let bgParticles = [];
-        let enemies = [];
-        let crystals = [];
-        let fxParticles = [];
-
-        // 入力管理
-        const keys = {};
-        window.addEventListener('keydown', e => {
-            keys[e.code] = true;
-            if (e.code === 'Space' && gameState === 'playing') {
-                triggerPulse();
+            if (lives <= 0) {
+              gameOver();
+            } else {
+              player.invincibleFrames = 90; // 被弾後約1.5秒間無敵
             }
-        });
-        window.addEventListener('keyup', e => keys[e.code] = false);
+          }
 
-        window.addEventListener('mousemove', e => {
-            if (gameState === 'playing') {
-                player.targetX = e.clientX;
-                player.targetY = e.clientY;
-            }
-        });
-
-        window.addEventListener('mousedown', e => {
-            if (gameState === 'playing' && e.button === 0) {
-                triggerPulse();
-            }
-        });
-
-        // パルス（範囲攻撃）
-        function triggerPulse() {
-            if (!player.pulseActive) {
-                player.pulseActive = true;
-                player.pulseRadius = player.radius;
-                audio.playPulse();
-            }
+          if (obs.x + obs.width < 0) obstacles.splice(i, 1);
         }
+      }
 
-        // 背景浮遊粒子の初期化
-        for (let i = 0; i < 70; i++) {
-            bgParticles.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                radius: Math.random() * 2 + 0.5,
-                vx: (Math.random() - 0.5) * 0.4,
-                vy: (Math.random() - 0.5) * 0.4,
-                alpha: Math.random() * 0.6 + 0.2
-            });
-        }
+      obstacles.forEach(obs => obs.draw());
+      player.draw();
+      requestAnimationFrame(gameLoop);
+    }
 
-        // ゲームリセット
-        function resetGame() {
-            score = 0;
-            health = 100;
-            enemies = [];
-            crystals = [];
-            fxParticles = [];
-            player.x = width / 2;
-            player.y = height / 2;
-            player.targetX = width / 2;
-            player.targetY = height / 2;
-            player.pulseActive = false;
+    // 操作イベント
+    function handleJump(e) {
+      if (gameState === 'PLAYING') {
+        player.jump();
+      }
+    }
 
-            document.getElementById('health-bar').style.width = '100%';
-            document.getElementById('score-display').textContent = '0';
-        }
+    window.addEventListener('touchstart', (e) => {
+      if (e.target !== startBtn && e.target !== pauseBtn && e.target !== resumeBtn) {
+        handleJump(e);
+      }
+    }, { passive: true });
 
-        // スタートボタン処理の紐付け
-        document.getElementById('start-btn').addEventListener('click', () => {
-            audio.init();
-            audio.playStart();
-            
-            document.getElementById('title-screen').classList.add('hidden');
-            document.getElementById('hud').classList.remove('hidden');
-            
-            resetGame();
-            gameState = 'playing';
-        });
+    window.addEventListener('mousedown', (e) => {
+      if (e.target !== startBtn && e.target !== pauseBtn && e.target !== resumeBtn) {
+        handleJump(e);
+      }
+    });
 
-        document.getElementById('restart-btn').addEventListener('click', () => {
-            audio.init();
-            audio.playStart();
-            
-            document.getElementById('game-over-screen').classList.add('hidden');
-            document.getElementById('hud').classList.remove('hidden');
-            
-            resetGame();
-            gameState = 'playing';
-        });
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        if (gameState === 'PLAYING') player.jump();
+      } else if (e.code === 'KeyP') {
+        togglePause();
+      }
+    });
 
-        // 破片エフェクトの生成
-        function createExplosion(x, y, color, count = 12) {
-            for (let i = 0; i < count; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 4 + 1;
-                fxParticles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    radius: Math.random() * 3 + 1,
-                    color: color,
-                    life: 1.0,
-                    decay: Math.random() * 0.03 + 0.02
-                });
-            }
-        }
+    // ゲーム開始処理
+    function startGame() {
+      logoContainer.innerHTML = '<img src="logo.png" alt="SUPER RUNNER" class="logo-img" id="logoImg" onerror="showTextLogo()">';
+      score = 0; 
+      level = 1;
+      lives = 2;
+      levelVal.textContent = level;
+      updateLivesUI();
+      updateHighScoreDisplays();
 
-        // メインループ
-        function loop() {
-            frameCount++;
-            ctx.clearRect(0, 0, width, height);
+      gameSpeed = 6.5; 
+      obstacles = []; 
+      player.reset();
+      gameState = 'PLAYING';
+      overlay.classList.add('hidden');
+      pauseOverlay.classList.add('hidden');
 
-            // --- 背景描画 ---
-            ctx.fillStyle = '#05050d';
-            ctx.fillRect(0, 0, width, height);
+      bgmAudio.currentTime = 0;
+      bgmAudio.playbackRate = 1.0;
+      bgmAudio.play().catch(()=>{});
+    }
 
-            // 背景粒子の更新と描画
-            ctx.fillStyle = '#00f2fe';
-            bgParticles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                if (p.x < 0) p.x = width;
-                if (p.x > width) p.x = 0;
-                if (p.y < 0) p.y = height;
-                if (p.y > height) p.y = 0;
+    startBtn.addEventListener('click', startGame);
+    startBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      startGame();
+    });
 
-                ctx.save();
-                ctx.globalAlpha = p.alpha;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            });
+    pauseBtn.addEventListener('click', togglePause);
+    resumeBtn.addEventListener('click', togglePause);
 
-            if (gameState === 'playing') {
-                // --- プレイヤー移動更新 ---
-                // キーボード操作処理
-                let kbSpeed = 6;
-                if (keys['KeyW'] || keys['ArrowUp']) player.targetY -= kbSpeed;
-                if (keys['KeyS'] || keys['ArrowDown']) player.targetY += kbSpeed;
-                if (keys['KeyA'] || keys['ArrowLeft']) player.targetX -= kbSpeed;
-                if (keys['KeyD'] || keys['ArrowRight']) player.targetX += kbSpeed;
-
-                // 画面端の制限
-                player.targetX = Math.max(player.radius, Math.min(width - player.radius, player.targetX));
-                player.targetY = Math.max(player.radius, Math.min(height - player.radius, player.targetY));
-
-                // 滑らかな補間移動
-                player.x += (player.targetX - player.x) * player.speed;
-                player.y += (player.targetY - player.y) * player.speed;
-
-                // --- 敵の生成 ---
-                if (frameCount % 45 === 0) {
-                    const side = Math.floor(Math.random() * 4);
-                    let ex, ey;
-                    if (side === 0) { ex = Math.random() * width; ey = -20; }
-                    else if (side === 1) { ex = width + 20; ey = Math.random() * height; }
-                    else if (side === 2) { ex = Math.random() * width; ey = height + 20; }
-                    else { ex = -20; ey = Math.random() * height; }
-
-                    const angle = Math.atan2(player.y - ey, player.x - ex);
-                    enemies.push({
-                        x: ex,
-                        y: ey,
-                        vx: Math.cos(angle) * (2 + Math.random() * 1.5),
-                        vy: Math.sin(angle) * (2 + Math.random() * 1.5),
-                        radius: 14 + Math.random() * 6
-                    });
-                }
-
-                // --- クリスタル（エネルギーアイテム）生成 ---
-                if (frameCount % 90 === 0 && crystals.length < 8) {
-                    crystals.push({
-                        x: Math.random() * (width - 100) + 50,
-                        y: Math.random() * (height - 100) + 50,
-                        radius: 8,
-                        pulse: 0
-                    });
-                }
-
-                // --- パルス（範囲攻撃）の更新 ---
-                if (player.pulseActive) {
-                    player.pulseRadius += 8;
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(player.x, player.y, player.pulseRadius, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(0, 242, 254, ' + (1 - player.pulseRadius / player.pulseMaxRadius) + ')';
-                    ctx.lineWidth = 4;
-                    ctx.stroke();
-                    ctx.restore();
-
-                    // パルスと敵の判定
-                    enemies.forEach((enemy, index) => {
-                        const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
-                        if (Math.abs(dist - player.pulseRadius) < enemy.radius + 10) {
-                            createExplosion(enemy.x, enemy.y, '#ff0055', 10);
-                            enemies.splice(index, 1);
-                            score += 150;
-                            document.getElementById('score-display').textContent = score;
-                        }
-                    });
-
-                    if (player.pulseRadius >= player.pulseMaxRadius) {
-                        player.pulseActive = false;
-                    }
-                }
-
-                // --- クリスタルの更新・描画 ---
-                crystals.forEach((c, index) => {
-                    c.pulse += 0.05;
-                    const r = c.radius + Math.sin(c.pulse) * 2;
-
-                    ctx.save();
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#00f2fe';
-                    ctx.fillStyle = '#00f2fe';
-                    ctx.beginPath();
-                    ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-
-                    // 取得判定
-                    if (Math.hypot(c.x - player.x, c.y - player.y) < player.radius + c.radius) {
-                        audio.playCollect();
-                        createExplosion(c.x, c.y, '#00f2fe', 8);
-                        score += 100;
-                        document.getElementById('score-display').textContent = score;
-                        crystals.splice(index, 1);
-                    }
-                });
-
-                // --- 敵の更新・描画 ---
-                enemies.forEach((enemy, index) => {
-                    enemy.x += enemy.vx;
-                    enemy.y += enemy.vy;
-
-                    // 描画
-                    ctx.save();
-                    ctx.shadowBlur = 12;
-                    ctx.shadowColor = '#ff0055';
-                    ctx.fillStyle = '#ff0055';
-                    ctx.beginPath();
-                    ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-
-                    // プレイヤーとの衝突判定
-                    if (Math.hypot(enemy.x - player.x, enemy.y - player.y) < player.radius + enemy.radius) {
-                        audio.playHit();
-                        createExplosion(enemy.x, enemy.y, '#ff0055', 15);
-                        enemies.splice(index, 1);
-                        
-                        health -= 20;
-                        document.getElementById('health-bar').style.width = Math.max(0, health) + '%';
-
-                        if (health <= 0) {
-                            gameState = 'gameover';
-                            document.getElementById('hud').classList.add('hidden');
-                            document.getElementById('final-score-display').textContent = score;
-                            document.getElementById('game-over-screen').classList.remove('hidden');
-                        }
-                    }
-                });
-
-                // --- プレイヤーの描画 ---
-                ctx.save();
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = '#00f2fe';
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.strokeStyle = '#00f2fe';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(player.x, player.y, player.radius + 4, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.restore();
-            }
-
-            // --- 特殊エフェクト粒子の描画・更新 ---
-            fxParticles.forEach((p, index) => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= p.decay;
-
-                if (p.life <= 0) {
-                    fxParticles.splice(index, 1);
-                } else {
-                    ctx.save();
-                    ctx.globalAlpha = p.life;
-                    ctx.fillStyle = p.color;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
-            });
-
-            requestAnimationFrame(loop);
-        }
-
-        // アニメーションループ起動
-        requestAnimationFrame(loop);
-    </script>
+    gameLoop();
+  </script>
 </body>
 </html>
