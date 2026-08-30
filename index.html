@@ -25,7 +25,7 @@
       height: 100%;
       height: 100svh;
       overflow: hidden;
-      background-color: #060a17; /* 目に優しいダークネイビー */
+      background-color: #cbd5e1; /* 目に優しいソフトグレーブルー */
       font-family: 'M PLUS Rounded 1c', 'Fredoka One', sans-serif;
       display: flex;
       justify-content: center;
@@ -38,7 +38,7 @@
       height: 100svh;
       max-width: 177.78svh;
       max-height: 56.25vw;
-      background: #060a17;
+      background: #bae6fd;
       overflow: hidden;
     }
 
@@ -79,8 +79,7 @@
       display: flex;
       gap: 4px;
       font-size: 22px;
-      /* 発光を抑えて目に優しく */
-      filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.4));
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
     }
 
     .score-board {
@@ -88,21 +87,21 @@
       gap: 15px;
       font-size: 18px;
       font-weight: 900;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+      text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
     }
 
-    .score-board .current-score { color: #facc15; }
-    .score-board .high-score { color: #4ade80; }
+    .score-board .current-score { color: #0284c7; }
+    .score-board .high-score { color: #15803d; }
 
     .level-badge {
       font-size: 16px;
       font-weight: 900;
-      color: #e2e8f0;
-      background: rgba(15, 23, 42, 0.8);
+      color: #1e293b;
+      background: rgba(255, 255, 255, 0.85);
       padding: 4px 16px;
       border-radius: 20px;
-      border: 1px solid #0284c7;
-      text-shadow: 1px 1px 2px #000;
+      border: 1px solid #94a3b8;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .btn-pause {
@@ -154,8 +153,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(6, 10, 23, 0.75);
-      backdrop-filter: blur(3px);
+      background: rgba(241, 245, 249, 0.82); /* 明るくソフトなオーバーレイ */
+      backdrop-filter: blur(2px);
       z-index: 1;
     }
 
@@ -171,21 +170,20 @@
       width: 100%;
       max-height: 180px;
       object-fit: contain;
-      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
     }
 
     .game-logo-text {
       font-family: 'Orbitron', 'Fredoka One', sans-serif;
       font-size: clamp(38px, 8vw, 70px);
       font-weight: 900;
-      color: #ffffff;
+      color: #0369a1;
       line-height: 1.0;
       letter-spacing: 3px;
       text-transform: uppercase;
-      background: linear-gradient(180deg, #ffffff 0%, #38bdf8 100%);
+      background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
     }
 
     .overlay-subtext {
@@ -193,13 +191,13 @@
       z-index: 2;
       font-size: clamp(14px, 3.2vw, 18px);
       font-weight: 900;
-      color: #f1f5f9;
+      color: #334155;
       margin-bottom: 20px;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(255, 255, 255, 0.9);
       padding: 6px 20px;
       border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .high-score-display {
@@ -207,7 +205,7 @@
       z-index: 2;
       font-size: clamp(16px, 3.5vw, 20px);
       font-weight: 900;
-      color: #4ade80;
+      color: #15803d;
       margin-bottom: 12px;
     }
 
@@ -224,7 +222,7 @@
       border-radius: 50px;
       cursor: pointer;
       box-shadow: 0 4px 0 #047857;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
       transition: transform 0.1s;
     }
 
@@ -256,7 +254,7 @@
     <!-- ポーズ画面 -->
     <div id="pauseOverlay" class="overlay-screen hidden">
       <div class="logo-container">
-        <div class="game-logo-text" style="background: linear-gradient(180deg, #fff, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PAUSED</div>
+        <div class="game-logo-text" style="background: linear-gradient(180deg, #d97706, #b45309); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PAUSED</div>
       </div>
       <p class="overlay-subtext">一時停止中</p>
       <button id="resumeBtn" class="btn-start" style="background: linear-gradient(180deg, #38bdf8, #0284c7); box-shadow:0 3px 0 #0369a1;">RESUME</button>
@@ -281,7 +279,7 @@
       container.innerHTML = '<div class="game-logo-text">SUPER RUNNER</div>';
     }
 
-    // --- オーディオ再生のラグ対策（軽量プール方式） ---
+    // --- オーディオ設定（軽量サウンドプール） ---
     const AUDIO_FILES = { 
       bgm: 'bgm.mp3', 
       jump: 'jump.mp3', 
@@ -294,7 +292,6 @@
     bgmAudio.loop = true;
     bgmAudio.volume = 0.35;
 
-    // 事前に軽量なサウンドプールを用意してラグ（処理落ち）を完全に排除
     class SoundPool {
       constructor(src, volume, size = 3) {
         this.pool = [];
@@ -364,17 +361,18 @@
     let gameSpeed = 8.0;
     let frameCount = 0;
 
-    // --- 目に優しい背景構成要素（低コントラスト・柔らかい色合い） ---
-    const stars = Array.from({ length: 25 }, () => ({
+    // --- 昼間の優しい背景構成要素（雲＆山々） ---
+    const clouds = Array.from({ length: 5 }, () => ({
       x: Math.random() * canvas.width,
-      y: Math.random() * (GROUND_Y - 140),
-      size: Math.random() * 1.5 + 1
+      y: 30 + Math.random() * 80,
+      width: 70 + Math.random() * 50,
+      height: 25 + Math.random() * 15
     }));
 
-    const buildings = Array.from({ length: 7 }, (_, i) => ({
-      x: i * 125,
-      width: 70 + Math.random() * 30,
-      height: 80 + Math.random() * 80
+    const mountains = Array.from({ length: 6 }, (_, i) => ({
+      x: i * 150,
+      width: 180 + Math.random() * 60,
+      height: 70 + Math.random() * 50
     }));
 
     // プレイヤーオブジェクト
@@ -413,7 +411,6 @@
         if (this.invincibleFrames > 0) this.invincibleFrames--;
       },
       draw() {
-        // 目に優しい滑らかな無敵点滅
         if (this.invincibleFrames > 0 && Math.floor(this.invincibleFrames / 5) % 2 === 0) return;
 
         let currentImg = null;
@@ -424,7 +421,7 @@
         if (currentImg) {
           ctx.drawImage(currentImg, this.x, this.y, this.width, this.height);
         } else {
-          ctx.fillStyle = '#ef4444';
+          ctx.fillStyle = '#e11d48';
           ctx.fillRect(this.x, this.y, this.width, this.height);
         }
       }
@@ -433,16 +430,13 @@
     let obstacles = [];
     let nextObstacleTimer = 0;
 
-    // --- 目に優しい＆クリア不可能な状況を作らない障害物設計 ---
+    // --- 昼間に馴染む落ち着いた障害物デザイン ---
     class Obstacle {
       constructor(forceType = null) {
-        // 詰み防止：引数で指定がなければランダム
         this.type = forceType || (Math.random() < 0.4 ? 'AIR' : 'GROUND');
         this.width = this.type === 'GROUND' ? 44 : 46;
         this.height = this.type === 'GROUND' ? 56 : 46;
         this.x = canvas.width + 40;
-        
-        // GROUND: 地上に配置 / AIR: 1段ジャンプでもくぐり抜け・ジャンプ両対応の高度
         this.y = this.type === 'GROUND' ? GROUND_Y - this.height : GROUND_Y - 115;
         this.rotation = 0;
       }
@@ -453,11 +447,11 @@
       draw() {
         ctx.save();
         if (this.type === 'GROUND') {
-          // --- 地上：ソフトなコーラルオレンジ（コントラストを落ち着かせたデザイン） ---
-          const redGrad = ctx.createLinearGradient(this.x, this.y, this.x, GROUND_Y);
-          redGrad.addColorStop(0, '#f43f5e');
-          redGrad.addColorStop(1, '#9f1239');
-          ctx.fillStyle = redGrad;
+          // --- 地上：ソフトなテラコッタ・ウッド調（目に優しいグラデーション） ---
+          const obsGrad = ctx.createLinearGradient(this.x, this.y, this.x, GROUND_Y);
+          obsGrad.addColorStop(0, '#e11d48');
+          obsGrad.addColorStop(1, '#9f1239');
+          ctx.fillStyle = obsGrad;
 
           ctx.beginPath();
           ctx.moveTo(this.x, GROUND_Y);
@@ -466,21 +460,21 @@
           ctx.closePath();
           ctx.fill();
 
-          // 落ち着いた警告ライン
-          ctx.fillStyle = '#fbbf24';
+          // マイルドな警告ライン
+          ctx.fillStyle = '#fde047';
           ctx.fillRect(this.x + 4, GROUND_Y - 12, this.width - 8, 8);
-          ctx.fillStyle = '#1e293b';
+          ctx.fillStyle = '#334155';
           for (let i = 6; i < this.width - 8; i += 10) {
             ctx.fillRect(this.x + i, GROUND_Y - 12, 4, 8);
           }
 
         } else {
-          // --- 空中：ソフトなアンバーオレンジの回転障害物 ---
+          // --- 空中：落ち着いたアンバーオレンジの回転体 ---
           ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
           ctx.rotate(this.rotation);
 
           const r = this.width / 2;
-          ctx.fillStyle = '#f59e0b';
+          ctx.fillStyle = '#d97706';
           ctx.beginPath();
           const teeth = 6;
           for (let i = 0; i < teeth; i++) {
@@ -494,8 +488,7 @@
           ctx.closePath();
           ctx.fill();
 
-          // 中心の落ち着いたコア
-          ctx.fillStyle = '#0f172a';
+          ctx.fillStyle = '#334155';
           ctx.beginPath();
           ctx.arc(0, 0, r * 0.4, 0, Math.PI * 2);
           ctx.fill();
@@ -508,54 +501,60 @@
       return (r1.x + 10 < r2.x + r2.width && r1.x + r1.width - 10 > r2.x && r1.y + 10 < r2.y + r2.height && r1.y + r1.height - 10 > r2.y);
     }
 
-    // --- 目に優しい穏やかな背景描画 ---
+    // --- 目に優しい「昼間」の描画関数 ---
     function drawBackground() {
-      // 1. 深みのある落ち着いたダークブルーのグラデーション
+      // 1. 眩しくない柔らかい昼空グラデーション（パステルブルー）
       const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
-      skyGrad.addColorStop(0, '#0a1128');
-      skyGrad.addColorStop(0.7, '#1c2541');
-      skyGrad.addColorStop(1, '#273453');
+      skyGrad.addColorStop(0, '#bae6fd'); // ソフトスカイブルー
+      skyGrad.addColorStop(0.6, '#e0f2fe');
+      skyGrad.addColorStop(1, '#f0f9ff');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, GROUND_Y);
 
-      // 2. 控えめな星（目に刺さらない柔らかい光）
-      ctx.fillStyle = 'rgba(226, 232, 240, 0.35)';
-      stars.forEach(s => {
-        if (gameState === 'PLAYING') s.x -= 0.15;
-        if (s.x < 0) s.x = canvas.width;
-        ctx.fillRect(s.x, s.y, s.size, s.size);
+      // 2. 柔らかい太陽（点滅なし・優しいトーン）
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.4)';
+      ctx.beginPath();
+      ctx.arc(680, 70, 36, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3. 遠景の山々（目を休ませるナチュラルグリーン）
+      mountains.forEach(m => {
+        if (gameState === 'PLAYING') m.x -= gameSpeed * 0.08;
+        if (m.x + m.width < 0) m.x = canvas.width + Math.random() * 40;
+
+        ctx.fillStyle = '#a7f3d0'; // 遠方の柔らかい黄緑
+        ctx.beginPath();
+        ctx.moveTo(m.x, GROUND_Y);
+        ctx.lineTo(m.x + m.width * 0.5, GROUND_Y - m.height);
+        ctx.lineTo(m.x + m.width, GROUND_Y);
+        ctx.closePath();
+        ctx.fill();
       });
 
-      // 3. シルエット調のビル群
-      buildings.forEach(b => {
-        if (gameState === 'PLAYING') b.x -= gameSpeed * 0.12;
-        if (b.x + b.width < 0) b.x = canvas.width + Math.random() * 30;
+      // 4. ゆったり流れる流線型の雲
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      clouds.forEach(c => {
+        if (gameState === 'PLAYING') c.x -= gameSpeed * 0.15;
+        if (c.x + c.width < 0) c.x = canvas.width + Math.random() * 50;
 
-        ctx.fillStyle = '#111827';
-        ctx.fillRect(b.x, GROUND_Y - b.height, b.width, b.height);
-
-        // 窓のやわらかい明かり
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
-        for (let wy = GROUND_Y - b.height + 15; wy < GROUND_Y - 15; wy += 22) {
-          for (let wx = b.x + 8; wx < b.x + b.width - 12; wx += 16) {
-            ctx.fillRect(wx, wy, 5, 8);
-          }
-        }
+        ctx.beginPath();
+        ctx.roundRect(c.x, c.y, c.width, c.height, 12);
+        ctx.fill();
       });
 
-      // 4. 地面（眩しくないダークトーン）
+      // 5. 地面（目に優しい自然なセージグリーン）
       const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, canvas.height);
-      groundGrad.addColorStop(0, '#1e293b');
-      groundGrad.addColorStop(1, '#0f172a');
+      groundGrad.addColorStop(0, '#15803d'); // ナチュラルグリーン
+      groundGrad.addColorStop(1, '#166534');
       ctx.fillStyle = groundGrad;
       ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
 
-      // 上部の落ち着いた境界線
-      ctx.fillStyle = '#0284c7';
-      ctx.fillRect(0, GROUND_Y, canvas.width, 3);
+      // 地面の芝生ライン
+      ctx.fillStyle = '#4ade80';
+      ctx.fillRect(0, GROUND_Y, canvas.width, 4);
 
-      // 控えめなスピードライン
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      // スピード感出し用の控えめな道ライン
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
       const offset = (frameCount * gameSpeed) % 50;
       for (let x = -offset; x < canvas.width; x += 50) {
         ctx.fillRect(x, GROUND_Y + 16, 20, 3);
@@ -595,9 +594,9 @@
         highScore = score;
         localStorage.setItem('runner_highscore', highScore);
         updateHighScoreDisplays();
-        logoContainer.innerHTML = '<div class="game-logo-text" style="background: linear-gradient(180deg, #fff, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">NEW RECORD!</div>';
+        logoContainer.innerHTML = '<div class="game-logo-text" style="background: linear-gradient(180deg, #10b981, #047857); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">NEW RECORD!</div>';
       } else {
-        logoContainer.innerHTML = '<div class="game-logo-text" style="background: linear-gradient(180deg, #fff, #f87171); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">GAME OVER</div>';
+        logoContainer.innerHTML = '<div class="game-logo-text" style="background: linear-gradient(180deg, #e11d48, #be123c); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">GAME OVER</div>';
       }
       
       overlayText.innerHTML = `FINAL SCORE: <strong>${Math.floor(score)}</strong> (LEVEL ${level})`;
@@ -615,7 +614,7 @@
         score += gameSpeed * 0.04;
         scoreVal.textContent = Math.floor(score);
 
-        // 100点ごとに難易度上昇
+        // 100点ごとのレベルアップ
         const currentLevel = Math.floor(score / 100) + 1;
         if (currentLevel > level) {
           level = currentLevel;
@@ -623,31 +622,27 @@
           playScoreSound();
         }
 
-        // スピードの上昇幅を滑らかにし、反応可能な範囲に設定
         gameSpeed = 8.0 + (level - 1) * 0.6;
 
         player.update();
 
-        // --- 詰み（クリア不能パターン）防止ロジック ---
+        // 詰み防止付き障害物生成
         nextObstacleTimer--;
         if (nextObstacleTimer <= 0) {
           let forcedType = null;
           const lastObs = obstacles[obstacles.length - 1];
 
-          // 直前の障害物が「地上」だった場合、次の障害物を近距離で「空中」に置くとジャンプ着地不可になるため制御
           if (lastObs && lastObs.type === 'GROUND' && (canvas.width + 40 - lastObs.x) < 260) {
-            forcedType = 'GROUND'; // 連続地上、または間隔を空ける
+            forcedType = 'GROUND';
           }
 
           obstacles.push(new Obstacle(forcedType));
 
-          // どんなにスピードが上がっても必ず反応・着地できる「絶対最低間隔」を計算で保証
           const minSafeDistanceFrames = Math.ceil((220 / gameSpeed)); 
           const randomExtra = Math.floor(Math.random() * 20);
           nextObstacleTimer = Math.max(minSafeDistanceFrames, 30 - level) + randomExtra;
         }
 
-        // 障害物の移動・衝突判定
         for (let i = obstacles.length - 1; i >= 0; i--) {
           const obs = obstacles[i];
           obs.update();
@@ -660,7 +655,7 @@
             if (lives <= 0) {
               gameOver();
             } else {
-              player.invincibleFrames = 75; // 無敵時間（被弾後のラグなし）
+              player.invincibleFrames = 75;
             }
           }
 
