@@ -273,7 +273,7 @@
       container.innerHTML = '<div class="game-logo-text">SUPER RUNNER</div>';
     }
 
-    // --- オーディオ設定 ---
+    // --- Web Audio API による高速サウンドシステム ---
     const AUDIO_FILES = { 
       bgm: 'bgm.mp3', 
       jump: 'jump.mp3', 
@@ -282,36 +282,64 @@
     };
     const PLAYER_IMAGES = { run1: 'run1.png', run2: 'run2.png', jump: 'jump.png' };
 
+    // BGMは長尺のため通常のHTML5 Audioで管理
     const bgmAudio = new Audio(AUDIO_FILES.bgm);
     bgmAudio.loop = true;
     bgmAudio.volume = 0.35;
 
-    class SoundPool {
-      constructor(src, volume, size = 2) {
-        this.pool = [];
-        for (let i = 0; i < size; i++) {
-          const a = new Audio(src);
-          a.volume = volume;
-          this.pool.push(a);
-        }
-        this.index = 0;
+    // Web Audio API の初期化
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    const soundBuffers = {};
+
+    function initAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new AudioContextClass();
       }
-      play() {
-        const sound = this.pool[this.index];
-        sound.currentTime = 0;
-        sound.play().catch(()=>{});
-        this.index = (this.index + 1) % this.pool.length;
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
     }
 
-    const jumpPool = new SoundPool(AUDIO_FILES.jump, 0.5, 2);
-    const scorePool = new SoundPool(AUDIO_FILES.score, 0.6, 2);
-    const damagePool = new SoundPool(AUDIO_FILES.damage, 0.7, 2);
+    // 効果音ファイルを非同期でプリロード・デコードする関数
+    async function loadSound(key, url) {
+      try {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        if (!audioCtx) audioCtx = new AudioContextClass();
+        const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        soundBuffers[key] = decodedBuffer;
+      } catch (err) {
+        console.warn(`Sound load failed: ${key}`, err);
+      }
+    }
 
-    function playJumpSound() { jumpPool.play(); }
-    function playScoreSound() { scorePool.play(); }
-    function playDamageSound() { damagePool.play(); }
+    // 事前に効果音をメモリへロード
+    loadSound('jump', AUDIO_FILES.jump);
+    loadSound('score', AUDIO_FILES.score);
+    loadSound('damage', AUDIO_FILES.damage);
 
+    // 高速再生関数（ラグなし）
+    function playSound(key, volume = 0.5) {
+      if (!audioCtx || !soundBuffers[key]) return;
+      try {
+        const source = audioCtx.createBufferSource();
+        const gainNode = audioCtx.createGain();
+        source.buffer = soundBuffers[key];
+        gainNode.gain.value = volume;
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        source.start(0);
+      } catch (e) {
+        // 例外発生時は無視
+      }
+    }
+
+    function playJumpSound() { playSound('jump', 0.5); }
+    function playScoreSound() { playSound('score', 0.6); }
+    function playDamageSound() { playSound('damage', 0.7); }
+
+    // 画像読み込み
     const images = {};
     Object.keys(PLAYER_IMAGES).forEach(key => {
       const img = new Image();
@@ -523,6 +551,7 @@
 
     function togglePause(e) {
       if (e) e.stopPropagation();
+      initAudioContext();
       if (gameState === 'PLAYING') {
         gameState = 'PAUSED';
         bgmAudio.pause();
@@ -623,6 +652,7 @@
 
     // 画面タップ・クリック操作の制御
     window.addEventListener('touchstart', (e) => {
+      initAudioContext();
       if (gameState === 'PLAYING' && e.target !== startBtn && e.target !== pauseBtn && e.target !== resumeBtn) {
         e.preventDefault();
         handleJump(e);
@@ -630,12 +660,14 @@
     }, { passive: false });
 
     window.addEventListener('mousedown', (e) => {
+      initAudioContext();
       if (gameState === 'PLAYING' && e.target !== startBtn && e.target !== pauseBtn && e.target !== resumeBtn) {
         handleJump(e);
       }
     });
 
     window.addEventListener('keydown', (e) => {
+      initAudioContext();
       if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
         if (gameState === 'PLAYING') player.jump();
@@ -650,6 +682,8 @@
         e.preventDefault();
         e.stopPropagation();
       }
+
+      initAudioContext();
 
       logoContainer.innerHTML = '<img src="logo.png" alt="SUPER RUNNER" class="logo-img" id="logoImg" onerror="showTextLogo()">';
       score = 0; 
@@ -672,7 +706,7 @@
       bgmAudio.play().catch(()=>{});
     }
 
-    // スタート・ポーズボタンのイベント登録（click と touchend を両立）
+    // スタート・ポーズボタンのイベント登録
     startBtn.addEventListener('click', startGame);
     startBtn.addEventListener('touchend', startGame);
 
