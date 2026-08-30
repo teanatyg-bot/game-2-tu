@@ -1,1 +1,501 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Cyber Runner - ジャンプ＆ラン</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
 
+    #game-container {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(to bottom, #1e1b4b, #312e81, #4338ca);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .ui-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px 24px;
+    }
+
+    .score-board {
+      display: flex;
+      justify-content: space-between;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+
+    .score-board .current-score { color: #38bdf8; }
+    .score-board .high-score { color: #facc15; }
+
+    .overlay-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      transition: opacity 0.2s ease;
+    }
+
+    .overlay-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin: 0 0 10px 0;
+      color: #f43f5e;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
+    }
+
+    p.subtitle {
+      font-size: 16px;
+      color: #94a3b8;
+      margin: 0 0 24px 0;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .btn {
+      padding: 14px 32px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #0f172a;
+      background: #38bdf8;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+      transition: transform 0.1s, background-color 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+      background: #7dd3fc;
+    }
+
+    .controls-hint {
+      position: absolute;
+      bottom: 12px;
+      font-size: 14px;
+      color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 16px;
+      border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="ui-layer">
+      <div class="score-board">
+        <div class="current-score">SCORE: <span id="scoreVal">0</span></div>
+        <div class="high-score">BEST: <span id="highScoreVal">0</span></div>
+      </div>
+      <div class="controls-hint">画面タップ: ジャンプ（空中でもう1回で2段ジャンプ）</div>
+    </div>
+
+    <div id="overlay" class="overlay-screen">
+      <h1 id="overlayTitle">HARD RUNNER</h1>
+      <p id="overlayText" class="subtitle">超高難易度！障害物をかわしてどこまで走れるか！？</p>
+      <button id="startBtn" class="btn">START</button>
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------
+    // 画像ファイル設定
+    // アップロードした画像に合わせてファイル名を修正してください
+    // -------------------------------------------------------------
+    const PLAYER_IMAGES = {
+      run1: 'run1.png', // 走るポーズ1
+      run2: 'run2.png', // 走るポーズ2
+      jump: 'jump.png'  // ジャンプ中ポーズ
+    };
+
+    const images = {};
+    const imageKeys = Object.keys(PLAYER_IMAGES);
+
+    imageKeys.forEach(key => {
+      const img = new Image();
+      img.src = PLAYER_IMAGES[key];
+      images[key] = img;
+    });
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 800;
+    canvas.height = 450;
+
+    const scoreVal = document.getElementById('scoreVal');
+    const highScoreVal = document.getElementById('highScoreVal');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlayText = document.getElementById('overlayText');
+    const startBtn = document.getElementById('startBtn');
+
+    const GROUND_Y = 370;
+    const GRAVITY = 0.85;
+
+    let gameState = 'START';
+    let score = 0;
+    let highScore = localStorage.getItem('runner_highscore') || 0;
+    highScoreVal.textContent = Math.floor(highScore);
+
+    let gameSpeed = 8.5;
+    let frameCount = 0;
+
+    const player = {
+      x: 80,
+      y: GROUND_Y - 60,
+      width: 50,
+      height: 60,
+      velocityY: 0,
+      jumpPower: -15.5,
+      jumpCount: 0,
+      maxJumps: 2,
+      isGrounded: false,
+      animFrame: 0,
+      
+      reset() {
+        this.y = GROUND_Y - this.height;
+        this.velocityY = 0;
+        this.jumpCount = 0;
+        this.isGrounded = true;
+        this.animFrame = 0;
+      },
+
+      jump() {
+        if (this.jumpCount < this.maxJumps) {
+          this.velocityY = this.jumpPower;
+          this.jumpCount++;
+          this.isGrounded = false;
+          createParticles(this.x + this.width / 2, this.y + this.height, 8, '#38bdf8');
+        }
+      },
+
+      update() {
+        this.velocityY += GRAVITY;
+        this.y += this.velocityY;
+
+        if (this.y >= GROUND_Y - this.height) {
+          this.y = GROUND_Y - this.height;
+          this.velocityY = 0;
+          if (!this.isGrounded) {
+            createParticles(this.x + this.width / 2, this.y + this.height, 5, '#cbd5e1');
+          }
+          this.isGrounded = true;
+          this.jumpCount = 0;
+        }
+
+        if (frameCount % 6 === 0) {
+          this.animFrame = (this.animFrame + 1) % 2;
+        }
+      },
+
+      draw() {
+        let currentImg = null;
+
+        if (!this.isGrounded && images.jump && images.jump.complete && images.jump.naturalWidth > 0) {
+          currentImg = images.jump;
+        } else if (this.animFrame === 0 && images.run1 && images.run1.complete && images.run1.naturalWidth > 0) {
+          currentImg = images.run1;
+        } else if (this.animFrame === 1 && images.run2 && images.run2.complete && images.run2.naturalWidth > 0) {
+          currentImg = images.run2;
+        } else if (images.run1 && images.run1.complete && images.run1.naturalWidth > 0) {
+          currentImg = images.run1;
+        }
+
+        if (currentImg) {
+          ctx.drawImage(currentImg, this.x, this.y, this.width, this.height);
+        } else {
+          ctx.fillStyle = '#f43f5e';
+          ctx.fillRect(this.x, this.y, this.width, this.height);
+          
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(this.x + 32, this.y + 10, 12, 12);
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(this.x + 38, this.y + 14, 6, 6);
+
+          if (this.isGrounded) {
+            ctx.fillStyle = '#9f1239';
+            if (this.animFrame === 0) {
+              ctx.fillRect(this.x + 5, this.y + this.height, 12, 8);
+            } else {
+              ctx.fillRect(this.x + 30, this.y + this.height, 12, 8);
+            }
+          }
+        }
+      }
+    };
+
+    let obstacles = [];
+    let nextObstacleTimer = 0;
+
+    class Obstacle {
+      constructor() {
+        this.type = Math.random() < 0.35 ? 'AIR' : 'GROUND';
+        this.width = this.type === 'GROUND' ? 35 + Math.random() * 20 : 45;
+        this.height = this.type === 'GROUND' ? 45 + Math.random() * 30 : 35;
+        this.x = canvas.width + 50;
+        
+        if (this.type === 'GROUND') {
+          this.y = GROUND_Y - this.height;
+          this.color = '#e11d48';
+        } else {
+          this.y = GROUND_Y - 110 - Math.random() * 40;
+          this.color = '#a855f7';
+        }
+      }
+
+      update() {
+        this.x -= gameSpeed;
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 8;
+        
+        if (this.type === 'GROUND') {
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y + this.height);
+          ctx.lineTo(this.x + this.width / 2, this.y);
+          ctx.lineTo(this.x + this.width, this.y + this.height);
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+        
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    let particles = [];
+    function createParticles(x, y, count, color) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.5) * 6,
+          size: Math.random() * 4 + 2,
+          color: color,
+          life: 20
+        });
+      }
+    }
+
+    function updateParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    function drawParticles() {
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life / 20;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      ctx.globalAlpha = 1.0;
+    }
+
+    function checkCollision(rect1, rect2) {
+      const padding = 6;
+      return (
+        rect1.x + padding < rect2.x + rect2.width &&
+        rect1.x + rect1.width - padding > rect2.x &&
+        rect1.y + padding < rect2.y + rect2.height &&
+        rect1.y + rect1.height - padding > rect2.y
+      );
+    }
+
+    function resetGame() {
+      score = 0;
+      gameSpeed = 8.5;
+      obstacles = [];
+      particles = [];
+      nextObstacleTimer = 0;
+      player.reset();
+      scoreVal.textContent = '0';
+    }
+
+    function gameOver() {
+      gameState = 'GAMEOVER';
+      createParticles(player.x + player.width / 2, player.y + player.height / 2, 30, '#f43f5e');
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('runner_highscore', highScore);
+        highScoreVal.textContent = Math.floor(highScore);
+        overlayTitle.textContent = 'NEW HIGH SCORE!';
+        overlayTitle.style.color = '#facc15';
+      } else {
+        overlayTitle.textContent = 'GAME OVER';
+        overlayTitle.style.color = '#f43f5e';
+      }
+
+      overlayText.innerHTML = `SCORE: <strong>${Math.floor(score)}</strong><br>スピードに追いつけなかった…`;
+      startBtn.textContent = 'RETRY';
+      overlay.classList.remove('hidden');
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawBackground();
+
+      if (gameState === 'PLAYING') {
+        frameCount++;
+        score += gameSpeed * 0.03;
+        scoreVal.textContent = Math.floor(score);
+
+        gameSpeed += 0.0015;
+
+        player.update();
+
+        nextObstacleTimer--;
+        if (nextObstacleTimer <= 0) {
+          obstacles.push(new Obstacle());
+          const minInterval = Math.max(35, 80 - gameSpeed * 2.5);
+          nextObstacleTimer = minInterval + Math.random() * 40;
+        }
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          const obs = obstacles[i];
+          obs.update();
+
+          if (checkCollision(player, obs)) {
+            gameOver();
+          }
+
+          if (obs.x + obs.width < 0) {
+            obstacles.splice(i, 1);
+          }
+        }
+
+        updateParticles();
+      }
+
+      obstacles.forEach(obs => obs.draw());
+      player.draw();
+      drawParticles();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND_Y);
+      ctx.lineTo(canvas.width, GROUND_Y);
+      ctx.stroke();
+
+      const gridOffset = (frameCount * gameSpeed) % 40;
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+      ctx.lineWidth = 1;
+      for (let x = -gridOffset; x < canvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, GROUND_Y);
+        ctx.lineTo(x - 20, canvas.height);
+        ctx.stroke();
+      }
+    }
+
+    function handleAction(e) {
+      if (e.type === 'keydown' && e.code !== 'Space') return;
+      if (e.target === startBtn) return;
+
+      if (gameState === 'PLAYING') {
+        player.jump();
+      }
+    }
+
+    window.addEventListener('touchstart', (e) => {
+      if (e.target !== startBtn) {
+        handleAction(e);
+      }
+    }, { passive: true });
+
+    window.addEventListener('mousedown', (e) => {
+      if (e.target !== startBtn) {
+        handleAction(e);
+      }
+    });
+
+    window.addEventListener('keydown', handleAction);
+
+    startBtn.addEventListener('click', () => {
+      resetGame();
+      gameState = 'PLAYING';
+      overlay.classList.add('hidden');
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>
