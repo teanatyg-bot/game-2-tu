@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Cyber Runner - ジャンプ＆ラン</title>
+  <title>SUPER RUNNER - ジャンプ＆ラン</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=M+PLUS+Rounded+1c:wght@800;900&display=swap');
+
     * {
       box-sizing: border-box;
       user-select: none;
@@ -13,9 +15,9 @@
     body {
       margin: 0;
       padding: 0;
-      background-color: #0f172a;
-      color: #f8fafc;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1a1a2e;
+      color: #ffffff;
+      font-family: 'M PLUS Rounded 1c', 'Fredoka One', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -30,9 +32,10 @@
       width: 100%;
       max-width: 800px;
       aspect-ratio: 16 / 9;
-      background: linear-gradient(to bottom, #1e1b4b, #312e81, #4338ca);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-      border-radius: 12px;
+      background: linear-gradient(to bottom, #60a5fa, #93c5fd, #bfdbfe);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      border-radius: 20px;
+      border: 4px solid #ffffff;
       overflow: hidden;
     }
 
@@ -58,22 +61,23 @@
     .score-board {
       display: flex;
       justify-content: space-between;
-      font-size: 20px;
-      font-weight: bold;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      font-size: 22px;
+      font-weight: 900;
+      text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
     }
 
-    .score-board .current-score { color: #38bdf8; }
-    .score-board .high-score { color: #facc15; }
+    .score-board .current-score { color: #fde047; }
+    .score-board .high-score { color: #4ade80; }
 
+    /* 任天堂ポップ風 タイトル＆ゲームオーバー画面 */
     .overlay-screen {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -87,49 +91,70 @@
       pointer-events: none;
     }
 
-    h1 {
-      font-size: 36px;
+    /* 3D立体ポップロゴ */
+    .game-logo {
+      font-family: 'Fredoka One', 'M PLUS Rounded 1c', sans-serif;
+      font-size: 52px;
       margin: 0 0 10px 0;
-      color: #f43f5e;
-      text-transform: uppercase;
+      color: #ff4757;
+      text-align: center;
+      line-height: 1.1;
       letter-spacing: 2px;
-      text-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
+      text-shadow: 
+        4px 4px 0px #ffa502,
+        8px 8px 0px #2ed573,
+        12px 12px 0px #1e90ff,
+        14px 14px 15px rgba(0, 0, 0, 0.5);
+      transform: rotate(-3deg);
+      animation: logoBounce 2s infinite ease-in-out alternate;
+    }
+
+    @keyframes logoBounce {
+      0% { transform: rotate(-3deg) scale(1); }
+      100% { transform: rotate(-1deg) scale(1.05); }
     }
 
     p.subtitle {
-      font-size: 16px;
-      color: #94a3b8;
-      margin: 0 0 24px 0;
+      font-size: 18px;
+      font-weight: 900;
+      color: #ffffff;
+      margin: 10px 0 25px 0;
       text-align: center;
       padding: 0 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     }
 
+    /* 任天堂風 プニプニ押せる3Dボタン */
     .btn {
-      padding: 14px 32px;
-      font-size: 20px;
-      font-weight: bold;
-      color: #0f172a;
-      background: #38bdf8;
-      border: none;
+      padding: 16px 48px;
+      font-family: 'Fredoka One', 'M PLUS Rounded 1c', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: #ffffff;
+      background: linear-gradient(to bottom, #2ed573, #26af5f);
+      border: 4px solid #ffffff;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-      transition: transform 0.1s, background-color 0.2s;
+      box-shadow: 0 8px 0 #1e8449, 0 15px 20px rgba(0,0,0,0.4);
+      transition: transform 0.1s, box-shadow 0.1s;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
     }
 
     .btn:active {
-      transform: scale(0.95);
-      background: #7dd3fc;
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 #1e8449, 0 5px 10px rgba(0,0,0,0.4);
     }
 
     .controls-hint {
       position: absolute;
       bottom: 12px;
       font-size: 14px;
-      color: #cbd5e1;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 6px 16px;
+      font-weight: 900;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 6px 18px;
       border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.3);
     }
   </style>
 </head>
@@ -146,28 +171,40 @@
       <div class="controls-hint">画面タップ: ジャンプ（空中でもう1回で2段ジャンプ）</div>
     </div>
 
+    <!-- 任天堂風タイトル＆リトライ画面 -->
     <div id="overlay" class="overlay-screen">
-      <h1 id="overlayTitle">HARD RUNNER</h1>
-      <p id="overlayText" class="subtitle">超高難易度！障害物をかわしてどこまで走れるか！？</p>
-      <button id="startBtn" class="btn">START</button>
+      <h1 id="overlayTitle" class="game-logo">SUPER<br>RUNNER</h1>
+      <p id="overlayText" class="subtitle">障害物をかわしてめざせハイスコア！</p>
+      <button id="startBtn" class="btn">GAME START</button>
     </div>
   </div>
 
   <script>
     // -------------------------------------------------------------
-    // 画像ファイル設定
-    // アップロードした画像に合わせてファイル名を修正してください
+    // 音声・画像ファイル設定
     // -------------------------------------------------------------
-    const PLAYER_IMAGES = {
-      run1: 'run1.png', // 走るポーズ1
-      run2: 'run2.png', // 走るポーズ2
-      jump: 'jump.png'  // ジャンプ中ポーズ
+    const AUDIO_FILES = {
+      bgm: 'bgm.mp3',   // BGM
+      jump: 'jump.mp3'  // ジャンプ音
     };
 
-    const images = {};
-    const imageKeys = Object.keys(PLAYER_IMAGES);
+    const PLAYER_IMAGES = {
+      run1: 'run1.png',
+      run2: 'run2.png',
+      jump: 'jump.png'
+    };
 
-    imageKeys.forEach(key => {
+    // オーディオ初期化
+    const bgmAudio = new Audio(AUDIO_FILES.bgm);
+    bgmAudio.loop = true; // BGMループ再生
+    bgmAudio.volume = 0.5;
+
+    const jumpAudio = new Audio(AUDIO_FILES.jump);
+    jumpAudio.volume = 0.7;
+
+    // 画像読み込み
+    const images = {};
+    Object.keys(PLAYER_IMAGES).forEach(key => {
       const img = new Image();
       img.src = PLAYER_IMAGES[key];
       images[key] = img;
@@ -194,7 +231,8 @@
     let highScore = localStorage.getItem('runner_highscore') || 0;
     highScoreVal.textContent = Math.floor(highScore);
 
-    let gameSpeed = 8.5;
+    // 難易度調整用変数
+    let gameSpeed = 6.0; // 最初は少し控えめな速度からスタート
     let frameCount = 0;
 
     const player = {
@@ -222,6 +260,11 @@
           this.velocityY = this.jumpPower;
           this.jumpCount++;
           this.isGrounded = false;
+          
+          // ジャンプ音再生（連続タップに対応させるため再生位置をリセット）
+          jumpAudio.currentTime = 0;
+          jumpAudio.play().catch(() => {});
+
           createParticles(this.x + this.width / 2, this.y + this.height, 8, '#38bdf8');
         }
       },
@@ -261,7 +304,7 @@
         if (currentImg) {
           ctx.drawImage(currentImg, this.x, this.y, this.width, this.height);
         } else {
-          ctx.fillStyle = '#f43f5e';
+          ctx.fillStyle = '#ff4757';
           ctx.fillRect(this.x, this.y, this.width, this.height);
           
           ctx.fillStyle = '#ffffff';
@@ -270,7 +313,7 @@
           ctx.fillRect(this.x + 38, this.y + 14, 6, 6);
 
           if (this.isGrounded) {
-            ctx.fillStyle = '#9f1239';
+            ctx.fillStyle = '#2ed573';
             if (this.animFrame === 0) {
               ctx.fillRect(this.x + 5, this.y + this.height, 12, 8);
             } else {
@@ -286,17 +329,20 @@
 
     class Obstacle {
       constructor() {
-        this.type = Math.random() < 0.35 ? 'AIR' : 'GROUND';
+        // スコアが上がるにつれて空中障害物の出現率が上昇（最大50%）
+        const airRatio = Math.min(0.5, 0.25 + score * 0.0005);
+        this.type = Math.random() < airRatio ? 'AIR' : 'GROUND';
+        
         this.width = this.type === 'GROUND' ? 35 + Math.random() * 20 : 45;
         this.height = this.type === 'GROUND' ? 45 + Math.random() * 30 : 35;
         this.x = canvas.width + 50;
         
         if (this.type === 'GROUND') {
           this.y = GROUND_Y - this.height;
-          this.color = '#e11d48';
+          this.color = '#ff4757';
         } else {
           this.y = GROUND_Y - 110 - Math.random() * 40;
-          this.color = '#a855f7';
+          this.color = '#ffa502';
         }
       }
 
@@ -307,7 +353,7 @@
       draw() {
         ctx.fillStyle = this.color;
         ctx.shadowColor = this.color;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 6;
         
         if (this.type === 'GROUND') {
           ctx.beginPath();
@@ -372,7 +418,7 @@
 
     function resetGame() {
       score = 0;
-      gameSpeed = 8.5;
+      gameSpeed = 6.0; // スピード初期化
       obstacles = [];
       particles = [];
       nextObstacleTimer = 0;
@@ -382,20 +428,24 @@
 
     function gameOver() {
       gameState = 'GAMEOVER';
-      createParticles(player.x + player.width / 2, player.y + player.height / 2, 30, '#f43f5e');
+      
+      // BGM一時停止
+      bgmAudio.pause();
+
+      createParticles(player.x + player.width / 2, player.y + player.height / 2, 30, '#ff4757');
 
       if (score > highScore) {
         highScore = score;
         localStorage.setItem('runner_highscore', highScore);
         highScoreVal.textContent = Math.floor(highScore);
-        overlayTitle.textContent = 'NEW HIGH SCORE!';
-        overlayTitle.style.color = '#facc15';
+        overlayTitle.innerHTML = 'NEW HIGH<br>SCORE!';
+        overlayTitle.style.color = '#2ed573';
       } else {
-        overlayTitle.textContent = 'GAME OVER';
-        overlayTitle.style.color = '#f43f5e';
+        overlayTitle.innerHTML = 'GAME OVER';
+        overlayTitle.style.color = '#ff4757';
       }
 
-      overlayText.innerHTML = `SCORE: <strong>${Math.floor(score)}</strong><br>スピードに追いつけなかった…`;
+      overlayText.innerHTML = `SCORE: <strong>${Math.floor(score)}</strong>`;
       startBtn.textContent = 'RETRY';
       overlay.classList.remove('hidden');
     }
@@ -410,15 +460,17 @@
         score += gameSpeed * 0.03;
         scoreVal.textContent = Math.floor(score);
 
-        gameSpeed += 0.0015;
+        // ★ 徐々に難易度が上がる仕組み（スピードアップ）
+        gameSpeed += 0.002;
 
         player.update();
 
+        // 障害物の出現間隔もスピードに応じて徐々に狭くなる
         nextObstacleTimer--;
         if (nextObstacleTimer <= 0) {
           obstacles.push(new Obstacle());
-          const minInterval = Math.max(35, 80 - gameSpeed * 2.5);
-          nextObstacleTimer = minInterval + Math.random() * 40;
+          const minInterval = Math.max(30, 85 - gameSpeed * 3.0);
+          nextObstacleTimer = minInterval + Math.random() * 35;
         }
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -445,25 +497,21 @@
     }
 
     function drawBackground() {
-      ctx.fillStyle = '#0f172a';
+      // 地面
+      ctx.fillStyle = '#2ed573';
       ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
 
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
+      // 土の層
+      ctx.fillStyle = '#70a1ff';
+      ctx.fillRect(0, GROUND_Y + 12, canvas.width, canvas.height - GROUND_Y - 12);
+
+      // 地面のライン
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.moveTo(0, GROUND_Y);
       ctx.lineTo(canvas.width, GROUND_Y);
       ctx.stroke();
-
-      const gridOffset = (frameCount * gameSpeed) % 40;
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
-      ctx.lineWidth = 1;
-      for (let x = -gridOffset; x < canvas.width; x += 40) {
-        ctx.beginPath();
-        ctx.moveTo(x, GROUND_Y);
-        ctx.lineTo(x - 20, canvas.height);
-        ctx.stroke();
-      }
     }
 
     function handleAction(e) {
@@ -489,10 +537,15 @@
 
     window.addEventListener('keydown', handleAction);
 
+    // ゲームスタート（BGM再生開始）
     startBtn.addEventListener('click', () => {
       resetGame();
       gameState = 'PLAYING';
       overlay.classList.add('hidden');
+
+      // BGM再生
+      bgmAudio.currentTime = 0;
+      bgmAudio.play().catch(err => console.log("BGM再生ブロック:", err));
     });
 
     gameLoop();
