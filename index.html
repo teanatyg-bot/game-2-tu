@@ -15,11 +15,10 @@
       padding: 0;
     }
 
-    /* Safariの全画面・見切れ対策 */
     html, body {
       width: 100%;
       height: 100%;
-      height: 100svh; /* Safariのアドレスバー考慮 */
+      height: 100svh;
       overflow: hidden;
       background-color: #000000;
       font-family: 'M PLUS Rounded 1c', 'Fredoka One', sans-serif;
@@ -28,15 +27,26 @@
       align-items: center;
     }
 
+    /* ゲームコンテナ */
     #game-container {
       position: relative;
       width: 100vw;
       height: 100svh;
-      max-width: 177.78svh; /* 16:9のアスペクト比を維持 */
+      max-width: 177.78svh;
       max-height: 56.25vw;
       background: #60a5fa;
       overflow: hidden;
-      box-shadow: 0 0 50px rgba(0,0,0,0.8);
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      transition: all 0.2s ease;
+    }
+
+    /* iOS用 擬似フルスクリーンモード */
+    #game-container.is-fullscreen {
+      max-width: 100vw !important;
+      max-height: 100svh !important;
+      width: 100vw !important;
+      height: 100svh !important;
+      border-radius: 0 !important;
     }
 
     canvas {
@@ -70,17 +80,18 @@
     .score-board .current-score { color: #fde047; }
     .score-board .high-score { color: #4ade80; }
 
-    /* --- 豪華タイトル＆ゲームオーバー画面 --- */
+    /* タイトル＆ゲームオーバー画面 */
     .overlay-screen {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      /* ご準備いただいたタイトル背景画像を設定 */
+      /* タイトル背景を「上部合わせ」に設定 */
       background-image: url('bg_title.png');
       background-size: cover;
-      background-position: center;
+      background-position: top center;
+      background-repeat: no-repeat;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -94,7 +105,6 @@
       display: none;
     }
 
-    /* 背景を少し暗くしてロゴとボタンを目立たせるオーバーレイ */
     .overlay-screen::before {
       content: '';
       position: absolute;
@@ -102,35 +112,27 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.2);
       z-index: 1;
     }
 
-    /* タイトルロゴ演出 */
     .logo-container {
       position: relative;
       z-index: 2;
       margin-bottom: 15px;
       text-align: center;
-      max-width: 70%;
-      animation: floatLogo 2.5s ease-in-out infinite alternate;
+      max-width: 65%;
     }
 
     .logo-img {
       width: 100%;
-      max-height: 180px;
+      max-height: 160px;
       object-fit: contain;
-      filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.6));
+      filter: drop-shadow(0px 6px 10px rgba(0,0,0,0.5));
     }
 
-    @keyframes floatLogo {
-      0% { transform: translateY(0px) scale(1) rotate(-1deg); }
-      100% { transform: translateY(-10px) scale(1.03) rotate(1deg); }
-    }
-
-    /* ゲームオーバー時のテキストロゴ */
     .game-logo-text {
-      font-size: clamp(36px, 8vw, 64px);
+      font-size: clamp(32px, 7vw, 56px);
       font-weight: 900;
       color: #ff3838;
       line-height: 1.0;
@@ -140,53 +142,43 @@
         -3px -3px 0 #fff,
         3px -3px 0 #fff,
         -3px 3px 0 #fff,
-        0 8px 0 #c51111,
-        0 15px 25px rgba(0,0,0,0.8);
+        0 6px 0 #c51111;
     }
 
     .overlay-subtext {
       position: relative;
       z-index: 2;
-      font-size: clamp(14px, 3vw, 20px);
+      font-size: clamp(14px, 3vw, 18px);
       font-weight: 900;
       color: #ffffff;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8);
+      margin-bottom: 15px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
       background: rgba(0, 0, 0, 0.4);
       padding: 4px 16px;
       border-radius: 20px;
     }
 
-    /* 任天堂風 3Dポップボタン */
     .btn-start {
       position: relative;
       z-index: 2;
-      padding: 14px 44px;
+      padding: 12px 40px;
       font-family: 'Fredoka One', 'M PLUS Rounded 1c', sans-serif;
-      font-size: clamp(20px, 4.5vw, 30px);
+      font-size: clamp(18px, 4vw, 26px);
       font-weight: 900;
       color: #ffffff;
       background: linear-gradient(to bottom, #32ff7e, #10ac84);
-      border: 4px solid #ffffff;
+      border: 3px solid #ffffff;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 8px 0 #0652dd, 0 12px 20px rgba(0,0,0,0.5);
-      transition: transform 0.1s, box-shadow 0.1s;
+      box-shadow: 0 6px 0 #0652dd, 0 8px 15px rgba(0,0,0,0.4);
       text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
-      animation: pulseBtn 1.5s infinite ease-in-out;
-    }
-
-    @keyframes pulseBtn {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.06); }
     }
 
     .btn-start:active {
-      transform: translateY(6px) scale(0.98) !important;
-      box-shadow: 0 2px 0 #0652dd, 0 4px 10px rgba(0,0,0,0.5);
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #0652dd, 0 4px 8px rgba(0,0,0,0.4);
     }
 
-    /* iOS Safari用の全画面化補助ボタン */
     .fullscreen-btn {
       position: absolute;
       top: 10px;
@@ -200,14 +192,13 @@
       font-weight: bold;
       z-index: 100;
       cursor: pointer;
-      backdrop-filter: blur(4px);
     }
   </style>
 </head>
 <body>
 
   <div id="game-container">
-    <button class="fullscreen-btn" onclick="toggleFullScreen()">全画面表示</button>
+    <button class="fullscreen-btn" id="fsBtn" onclick="toggleFullScreen()">全画面表示</button>
     <canvas id="gameCanvas"></canvas>
 
     <div class="ui-layer">
@@ -217,13 +208,8 @@
       </div>
     </div>
 
-    <!-- タイトル＆リトライ画面 -->
     <div id="overlay" class="overlay-screen">
-      <!-- キラキラパーティクル用Canvas -->
-      <canvas id="titleBgCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;"></canvas>
-
       <div class="logo-container" id="logoContainer">
-        <!-- JSで画像(logo.png)を読み込んで表示 -->
         <img src="logo.png" alt="SUPER RUNNER" class="logo-img" id="logoImg" onerror="showTextLogo()">
       </div>
 
@@ -234,36 +220,46 @@
   </div>
 
   <script>
-    // --- 全画面表示切り替え（iOS/Android対応） ---
+    // --- 全画面表示処理 (iOS対応の擬似フルスクリーン) ---
     function toggleFullScreen() {
+      const container = document.getElementById('game-container');
+      const btn = document.getElementById('fsBtn');
+      
+      container.classList.toggle('is-fullscreen');
+      
+      if (container.classList.contains('is-fullscreen')) {
+        btn.textContent = '元に戻す';
+      } else {
+        btn.textContent = '全画面表示';
+      }
+
+      // 標準APIが使える環境用
       const doc = window.document;
       const docEl = doc.documentElement;
-
-      const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+      const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullScreen;
       if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
-        if (requestFS) requestFS.call(docEl);
+        if (requestFS) requestFS.call(docEl).catch(()=>{});
       } else {
         const exitFS = doc.exitFullscreen || doc.webkitExitFullscreen;
-        if (exitFS) exitFS.call(doc);
+        if (exitFS) exitFS.call(doc).catch(()=>{});
       }
     }
 
-    // 画像が読み込めなかった場合のテキストフォールバック
     function showTextLogo() {
       const container = document.getElementById('logoContainer');
       container.innerHTML = '<div class="game-logo-text">SUPER RUNNER</div>';
     }
 
-    // --- 音声・画像ファイル設定 ---
+    // --- 音声・画像設定 ---
     const AUDIO_FILES = { bgm: 'bgm.mp3', jump: 'jump.mp3' };
     const PLAYER_IMAGES = { run1: 'run1.png', run2: 'run2.png', jump: 'jump.png' };
 
     const bgmAudio = new Audio(AUDIO_FILES.bgm);
     bgmAudio.loop = true;
-    bgmAudio.volume = 0.5;
+    bgmAudio.volume = 0.4;
 
     const jumpAudio = new Audio(AUDIO_FILES.jump);
-    jumpAudio.volume = 0.7;
+    jumpAudio.volume = 0.6;
 
     const images = {};
     Object.keys(PLAYER_IMAGES).forEach(key => {
@@ -294,44 +290,6 @@
 
     let gameSpeed = 6.0;
     let frameCount = 0;
-
-    // --- タイトル画面のキラキラ光る演出 ---
-    const tCanvas = document.getElementById('titleBgCanvas');
-    const tCtx = tCanvas.getContext('2d');
-    let titleParticles = [];
-
-    function initTitleParticles() {
-      tCanvas.width = canvas.width;
-      tCanvas.height = canvas.height;
-      titleParticles = [];
-      for(let i = 0; i < 40; i++) {
-        titleParticles.push({
-          x: Math.random() * tCanvas.width,
-          y: Math.random() * tCanvas.height,
-          size: Math.random() * 3 + 1,
-          speedY: -(Math.random() * 0.8 + 0.3),
-          opacity: Math.random()
-        });
-      }
-    }
-    initTitleParticles();
-
-    function drawTitleBg() {
-      if (gameState !== 'START' && gameState !== 'GAMEOVER') return;
-      tCtx.clearRect(0, 0, tCanvas.width, tCanvas.height);
-      tCtx.fillStyle = '#ffffff';
-      
-      titleParticles.forEach(p => {
-        p.y += p.speedY;
-        if (p.y < 0) p.y = tCanvas.height;
-        tCtx.globalAlpha = p.opacity;
-        tCtx.beginPath();
-        tCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        tCtx.fill();
-      });
-      requestAnimationFrame(drawTitleBg);
-    }
-    drawTitleBg();
 
     // --- プレイヤーオブジェクト ---
     const player = {
@@ -434,7 +392,6 @@
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // ゲームプレイ時の地面描画
       ctx.fillStyle = '#2ed573';
       ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
 
@@ -466,13 +423,13 @@
     }
 
     window.addEventListener('touchstart', (e) => {
-      if (e.target !== startBtn && gameState === 'PLAYING') player.jump();
+      if (e.target !== startBtn && e.target !== document.getElementById('fsBtn') && gameState === 'PLAYING') {
+        player.jump();
+      }
     }, { passive: true });
 
     startBtn.addEventListener('click', () => {
-      // ロゴ画像を再セット
       logoContainer.innerHTML = '<img src="logo.png" alt="SUPER RUNNER" class="logo-img" id="logoImg" onerror="showTextLogo()">';
-      
       score = 0; gameSpeed = 6.0; obstacles = []; player.reset();
       gameState = 'PLAYING';
       overlay.classList.add('hidden');
